@@ -1,3 +1,17 @@
+<p align="center">
+
+<pre>
+                           ██╗    ██╗███████╗██╗  ██╗   ██╗██╗    ██╗██████╗ ██╗  ██╗███████╗
+                           ██║    ██║╚══███╔╝██║  ╚██╗ ██╔╝██║    ██║██╔══██╗██║ ██╔╝██╔════╝
+                           ██║ █╗ ██║  ███╔╝ ██║   ╚████╔╝ ██║ █╗ ██║██████╔╝█████╔╝ ███████╗
+                           ██║███╗██║ ███╔╝  ██║    ╚██╔╝  ██║███╗██║██╔══██╗██╔═██╗ ╚════██║
+                           ╚███╔███╔╝███████╗███████╗██║██╗╚███╔███╔╝██║  ██║██║  ██╗███████║
+                            ╚══╝╚══╝ ╚══════╝╚══════╝╚═╝╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
+                                                      wzly.wrks
+</pre>
+
+</p>
+
 # Meal Map Demo
 
 This is a custom web app for visualizing and managing meal delivery routes across Los Angeles County. Built specifically for the Client Services and Logistics teams of a non-profit organization.
