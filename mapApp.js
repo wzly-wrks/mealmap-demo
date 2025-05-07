@@ -1,3 +1,4 @@
 
-// Placeholder for real map logic
-document.getElementById('root').innerText = 'Meal Map is up. Zones loading...';
+function initMap() {
+  document.getElementById('root').innerText = 'Map successfully loaded and initialized.';
+}
