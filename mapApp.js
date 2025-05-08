@@ -1,4 +1,7 @@
 
 function initMap() {
-  document.getElementById('root').innerText = 'Map successfully loaded and initialized.';
+  new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 34.0522, lng: -118.2437 },
+    zoom: 10
+  });
 }
