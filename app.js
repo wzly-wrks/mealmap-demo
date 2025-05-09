@@ -1,42 +1,60 @@
 
-document.getElementById("themeToggle").onclick = () => {
-  const root = document.documentElement;
-  const current = root.getAttribute("data-theme");
-  const next = current === "dark" ? "light" : "dark";
-  root.setAttribute("data-theme", next);
-  localStorage.setItem("theme", next);
+let map;
+let currentDay = "Sunday";
+let adminMode = false;
+let polygons = [];
+
+const zones = window.routes;
+
+document.getElementById("daySelect").onchange = (e) => {
+  currentDay = e.target.value;
+  renderZones();
 };
 
-const savedTheme = localStorage.getItem("theme");
-if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+document.getElementById("themeToggle").onclick = () => {
+  document.body.classList.toggle("dark");
+};
+
+document.getElementById("adminLogin").onclick = () => {
+  const pwd = prompt("Enter admin password");
+  if (pwd === "routeadmin2025") {
+    adminMode = true;
+    document.getElementById("adminPanel").classList.remove("hidden");
+  }
+};
 
 function initMap() {
-  const map = new google.maps.Map(document.getElementById("map"), {
+  map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 34.0522, lng: -118.2437 },
     zoom: 10
   });
+  renderZones();
+}
 
-  window.routes.forEach(route => {
-    const zone = new google.maps.Polygon({
-      paths: route.path,
+function renderZones() {
+  polygons.forEach(p => p.setMap(null));
+  polygons = [];
+
+  zones.filter(z => z.day === currentDay).forEach(zone => {
+    const poly = new google.maps.Polygon({
+      paths: zone.path,
       map,
-      fillColor: route.restricted ? "#888" : (route.capacity > 0.9 ? "#d33" : "#33d"),
+      fillColor: zone.restricted ? "#888" : (zone.capacity > 0.9 ? "#d33" : "#33d"),
       strokeColor: "#000",
       fillOpacity: 0.4,
       strokeWeight: 1
     });
 
     const infowindow = new google.maps.InfoWindow({
-      content: `<strong>${route.name}</strong><br>
-                Driver: ${route.driver}<br>
-                Deliveries: ${route.deliveries}<br>
-                Capacity: ${Math.round(route.capacity * 100)}%` +
-                (route.restricted ? `<br><span style='color:red;'>Restricted</span>` : ``)
+      content: `<strong>${zone.name}</strong><br>Driver: ${zone.driver}<br>Deliveries: ${zone.deliveries}<br>Capacity: ${Math.round(zone.capacity * 100)}%` +
+               (zone.restricted ? `<br><span style='color:red;'>Restricted</span>` : ``)
     });
 
-    zone.addListener('click', (e) => {
+    poly.addListener('click', (e) => {
       infowindow.setPosition(e.latLng);
       infowindow.open(map);
     });
+
+    polygons.push(poly);
   });
 }
