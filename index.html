@@ -1,1 +1,104 @@
-<!DOCTYPE html><html><head><title>Meal Map</title></head><body><div id='map'>Loading map...</div><script src='app.js'></script><script src='https://maps.googleapis.com/maps/api/js?key=AIzaSyD6dMrmfhOuABbU3_0zspACG_CO_VjIgxo&callback=initMap&libraries=places' async defer></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Map - Route Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="light-mode">
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <h1>Meal Map</h1>
+                <span class="subtitle">LA County Delivery Routes</span>
+            </div>
+            <div class="controls">
+                <button id="darkModeToggle" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="adminPanelButton" title="Admin Panel">
+                    <i class="fas fa-lock"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="day-selector">
+                    <h3>Select Day</h3>
+                    <div class="day-buttons">
+                        <button data-day="Sunday">Sunday</button>
+                        <button data-day="Monday">Monday</button>
+                        <button data-day="Tuesday">Tuesday</button>
+                        <button data-day="Wednesday">Wednesday</button>
+                        <button data-day="Thursday">Thursday</button>
+                        <button data-day="Friday">Friday</button>
+                    </div>
+                </div>
+
+                <div class="search-container">
+                    <h3>Address Search</h3>
+                    <div class="search-input-group">
+                        <input type="text" id="addressSearch" placeholder="Enter an address">
+                        <button id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="searchResult"></div>
+                </div>
+
+                <div class="route-list">
+                    <h3>Routes <span id="routeCount"></span></h3>
+                    <ul id="routesList"></ul>
+                </div>
+            </div>
+
+            <div id="map"></div>
+        </div>
+
+        <!-- Admin Panel Modal -->
+        <div id="adminPanel" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Admin Panel</h2>
+                <div id="adminLogin">
+                    <input type="password" id="adminPassword" placeholder="Enter password">
+                    <button id="loginButton">Login</button>
+                </div>
+                <div id="adminControls" style="display: none;">
+                    <h3>Zone Editor</h3>
+                    <button id="drawZoneButton">Draw New Zone</button>
+                    <div id="zoneProperties" style="display: none;">
+                        <input type="text" id="zoneName" placeholder="Zone Name">
+                        <select id="zoneDay">
+                            <option value="Sunday">Sunday</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                        </select>
+                        <input type="text" id="zoneDriver" placeholder="Driver Name">
+                        <input type="number" id="zoneDeliveries" placeholder="# of Deliveries">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="zoneRestricted">
+                            <label for="zoneRestricted">Restricted Zone</label>
+                        </div>
+                        <button id="saveZoneButton">Save Zone</button>
+                        <button id="cancelZoneButton">Cancel</button>
+                    </div>
+                    <h3>Route Management</h3>
+                    <button id="exportRoutes">Export Routes</button>
+                    <button id="importRoutes">Import Routes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="routes.js"></script>
+    <script src="app.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD6dMrmfhOuABbU3_0zspACG_CO_VjIgxo&callback=initMap&libraries=drawing,places,geometry" async defer></script>
+</body>
+</html>
