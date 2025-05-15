@@ -1,0 +1,488 @@
+[
+  {
+    "name": "VAN-01",
+    "territory": "PALMDALE",
+    "driver": "LOUIS",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-01",
+    "territory": "CANYON CNTRY-1",
+    "driver": "SAMANTHA",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "TUE",
+    "territory": "VAN-01",
+    "driver": "NO. HOLLYWOOD-2",
+    "day": "Tuesday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-02",
+    "territory": "NORTHEAST-2",
+    "driver": "RAFAEL",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-02",
+    "territory": "EAST LA-1",
+    "driver": "PETER",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-03",
+    "territory": "NORTHEAST-3",
+    "driver": "SAMANTHA",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-03",
+    "territory": "EAST LA-2",
+    "driver": "FRANCOIS",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-04",
+    "territory": "SOUTH GATE-5",
+    "driver": "TBD",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-04",
+    "territory": "EAST LA-3",
+    "driver": "CHRIS W",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-05",
+    "territory": "WESTMONT PARK-1",
+    "driver": "BREE",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-05",
+    "territory": "MID CITY-1",
+    "driver": "DAVID",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-06",
+    "territory": "WESTSIDE-1",
+    "driver": "SCOTT C",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-06",
+    "territory": "MID CITY-2",
+    "driver": "TBD",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-07",
+    "territory": "EAST LA-4",
+    "driver": "KEITH",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-07",
+    "territory": "MID CITY-3",
+    "driver": "CHRIS R",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-08",
+    "territory": "CANYON CNTRY-2",
+    "driver": "RON",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-08",
+    "territory": "ROSECRANS-1",
+    "driver": "KEITH",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-09",
+    "territory": "ROSEGATE-1",
+    "driver": "DAMON",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-09",
+    "territory": "SOUTH GATE-1",
+    "driver": "RAFAEL",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-10",
+    "territory": "CULVER CITY",
+    "driver": "Melissa",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-10",
+    "territory": "SAN GABRIEL-2",
+    "driver": "SCOTT C",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-11",
+    "territory": "VERDUGO",
+    "driver": "VOLUNTEERS",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-11",
+    "territory": "ROSECRANS-2",
+    "driver": "DAMON",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VOL-1",
+    "territory": "MID CITY-4",
+    "driver": "JUAN CARLOS",
+    "day": "Monday",
+    "assignable": false,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VOL-2",
+    "territory": "CANYON CNTRY-3",
+    "driver": "TEX",
+    "day": "Monday",
+    "assignable": false,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-01",
+    "territory": "SOUTH BAY-4",
+    "driver": "LOUIS",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-01",
+    "territory": "AGAPE-1",
+    "driver": "CHRIS R",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "FRI",
+    "territory": "VAN-01",
+    "driver": "open",
+    "day": "Tuesday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-02",
+    "territory": "LAUREL-2",
+    "driver": "FRANCOIS",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-02",
+    "territory": "DOWNTOWN-1",
+    "driver": "TBD",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-03",
+    "territory": "LONG BEACH-1",
+    "driver": "CHRIS R",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-03",
+    "territory": "HOLLYWOOD-1",
+    "driver": "SAMANTHA",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-04",
+    "territory": "SAN GABRIEL-1",
+    "driver": "SCOTT C",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-04",
+    "territory": "LA PUENTE-1",
+    "driver": "SCOTT C",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-05",
+    "territory": "SEPULVEDA-2",
+    "driver": "SAMANTHA",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-05",
+    "territory": "LANCASTER-1",
+    "driver": "RAFAEL",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-06",
+    "territory": "SILVERLAKE-3",
+    "driver": "PETER",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-06",
+    "territory": "LANCASTER-2",
+    "driver": "LOUIS",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-07",
+    "territory": "SOUTH BAY-1",
+    "driver": "DAVID",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-07",
+    "territory": "SEPULVEDA-1",
+    "driver": "JUAN CARLOS",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-08",
+    "territory": "SOUTHEAST-2",
+    "driver": "CHRIS W",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-08",
+    "territory": "SOUTH BAY-2",
+    "driver": "CHRIS W",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-09",
+    "territory": "WAC-2",
+    "driver": "TBD",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-09",
+    "territory": "SOUTHEAST-1",
+    "driver": "ERIC",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-10",
+    "territory": "WRHAP-1",
+    "driver": "JUAN CARLOS",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-10",
+    "territory": "WESTSIDE-2",
+    "driver": "PETER",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-11",
+    "territory": "SOUTHEAST-4",
+    "driver": "ERIC",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VAN-11",
+    "territory": "SOUTH BAY PLUS",
+    "driver": "FRANCOIS",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VOLUNTEER-1",
+    "territory": "LAUREL-1",
+    "driver": "VOLUNTEERS",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VOLUNTEER-1",
+    "territory": "HOLLYWOOD-2",
+    "driver": "VOLUNTEERS",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VOLUNTEER-2/3/4",
+    "territory": "COA Neighborhood",
+    "driver": "VOLUNTEERS",
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "VOLUNTEER-2",
+    "territory": "PALM PLUS",
+    "driver": "ERICK M",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "Louis",
+    "territory": "Tex",
+    "driver": null,
+    "day": "Sunday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  },
+  {
+    "name": "Tex",
+    "territory": "Francois",
+    "driver": "David",
+    "day": "Monday",
+    "assignable": true,
+    "visible": true,
+    "capacity": null
+  }
+]
