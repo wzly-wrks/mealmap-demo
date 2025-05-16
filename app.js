@@ -184,6 +184,135 @@ function initMap() {
             styles: globals.mapStyles.light
         });
 
+        // Initialize drawing manager
+globals.drawingManager = new google.maps.drawing.DrawingManager({
+    drawingMode: null,
+    drawingControl: true,
+    drawingControlOptions: {
+        position: google.maps.ControlPosition.TOP_CENTER,
+        drawingModes: [
+            google.maps.drawing.OverlayType.POLYGON
+        ]
+    },
+    polygonOptions: {
+        fillColor: '#2ecc71',
+        fillOpacity: 0.3,
+        strokeWeight: 2,
+        strokeColor: '#2ecc71',
+        clickable: true,
+        editable: true,
+        zIndex: 1
+    }
+});
+
+// Set the drawing manager on the map
+globals.drawingManager.setMap(globals.map);
+
+// Add event listener for when polygon drawing is completed
+google.maps.event.addListener(globals.drawingManager, 'polygoncomplete', function(polygon) {
+    // Store the current polygon
+    globals.currentPolygon = polygon;
+    
+    // Stop drawing mode
+    globals.drawingManager.setDrawingMode(null);
+    
+    // Get polygon coordinates
+    const path = polygon.getPath();
+    const coordinates = [];
+    for (let i = 0; i < path.getLength(); i++) {
+        const point = path.getAt(i);
+        coordinates.push({
+            lat: point.lat(),
+            lng: point.lng()
+        });
+    }
+    
+    // Show save form
+    showSaveRouteForm(coordinates);
+});
+
+function showSaveRouteForm(coordinates) {
+    // Create form HTML
+    const formHtml = `
+        <div id="routeForm" class="route-form">
+            <h3>Save Route</h3>
+            <div class="form-group">
+                <label>Route Name:</label>
+                <input type="text" id="routeName" required>
+            </div>
+            <div class="form-group">
+                <label>Day:</label>
+                <select id="routeDay" required>
+                    <option value="Sunday">Sunday</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Driver:</label>
+                <input type="text" id="routeDriver">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="routeRestricted">
+                    Restricted Route
+                </label>
+            </div>
+            <div class="form-actions">
+                <button onclick="saveRoute(${JSON.stringify(coordinates)})">Save Route</button>
+                <button onclick="cancelRoute()">Cancel</button>
+            </div>
+        </div>
+    `;
+
+    // Add form to page
+    const formContainer = document.createElement('div');
+    formContainer.innerHTML = formHtml;
+    document.body.appendChild(formContainer);
+}
+
+function saveRoute(coordinates) {
+    const route = {
+        name: document.getElementById('routeName').value,
+        day: document.getElementById('routeDay').value,
+        driver: document.getElementById('routeDriver').value || 'Unassigned',
+        restricted: document.getElementById('routeRestricted').checked,
+        path: coordinates
+    };
+
+    // Add to routes array
+    window.routes.push(route);
+    
+    // Clear current polygon
+    if (globals.currentPolygon) {
+        globals.currentPolygon.setMap(null);
+        globals.currentPolygon = null;
+    }
+
+    // Remove form
+    document.getElementById('routeForm').remove();
+    
+    // Refresh display
+    displayRoutesByDay(globals.currentDay);
+    
+    // Show success message
+    showToast('success', 'Route saved successfully!');
+}
+
+function cancelRoute() {
+    // Clear current polygon
+    if (globals.currentPolygon) {
+        globals.currentPolygon.setMap(null);
+        globals.currentPolygon = null;
+    }
+    
+    // Remove form
+    document.getElementById('routeForm').remove();
+}
+
         console.log("Map created successfully");
 
         // Initialize geocoder for address search
