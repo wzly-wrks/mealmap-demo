@@ -2,42 +2,159 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Meal Map Demo</title>
-    <style>
-        body { margin: 0; font-family: sans-serif; }
-        #map { height: 100vh; width: 75vw; float: right; }
-        .sidebar { width: 25vw; height: 100vh; float: left; background: #f5f5f5; padding: 1rem; box-sizing: border-box; }
-        .day-buttons button.active { background: #00a6d3; color: white; }
-        ul#routesList { list-style: none; padding-left: 0; }
-        ul#routesList li { padding: 5px 0; border-bottom: 1px solid #ccc; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Map - Project Angel Food</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 </head>
-<body>
-    <div class="sidebar">
-        <h2>Meal Map</h2>
-        <div class="day-buttons">
-            <button data-day="Sunday">Sunday</button>
-            <button data-day="Monday">Monday</button>
-            <button data-day="Tuesday">Tuesday</button>
-            <button data-day="Wednesday">Wednesday</button>
-            <button data-day="Thursday">Thursday</button>
-            <button data-day="Friday">Friday</button>
+<body class="light-mode">
+    <!-- Loading screen -->
+    <div id="loading-screen">
+        <div class="loader-container">
+            <div class="logo-loader">
+                <img src="paf-logo.png" alt="Project Angel Food Logo" id="logo-loader">
+                <div class="loading-spinner"></div>
+            </div>
+            <h2>Loading Meal Map</h2>
         </div>
-        <h3>Routes <span id="routeCount">(0)</span></h3>
-        <ul id="routesList"></ul>
     </div>
-    <div id="map"></div>
-    <script src="routes.json" type="application/json"></script>
-    <script>
-        fetch('routes.json')
-            .then(res => res.json())
-            .then(data => {
-                window.routes = data;
-                const script = document.createElement('script');
-                script.src = 'app.js';
-                document.body.appendChild(script);
-            });
-    </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD6dMrmfhOuABbU3_0zspACG_CO_VjIgxo&libraries=drawing,geometry"></script>
+
+    <div class="app-container">
+        <header>
+            <div class="logo-container">
+                <div class="logo-wrapper">
+                    <img src="paf-logo.png" alt="Project Angel Food Logo" class="paf-logo">
+                </div>
+                <div class="title-wrapper">
+                    <h1>Meal Map</h1>
+                    <span class="subtitle">LA County Delivery Routes</span>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="darkModeToggle" class="animated-btn" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="adminPanelButton" class="animated-btn" title="Admin Panel">
+                    <i class="fas fa-lock"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="day-selector panel">
+                    <h3><i class="fas fa-calendar-day"></i> Select Day</h3>
+                    <div class="day-buttons">
+                        <button data-day="Sunday">Sunday</button>
+                        <button data-day="Monday">Monday</button>
+                        <button data-day="Tuesday">Tuesday</button>
+                        <button data-day="Wednesday">Wednesday</button>
+                        <button data-day="Thursday">Thursday</button>
+                        <button data-day="Friday">Friday</button>
+                    </div>
+                </div>
+
+                <div class="search-container panel">
+                    <h3><i class="fas fa-search"></i> Address Search</h3>
+                    <div class="search-input-group">
+                        <input type="text" id="addressSearch" placeholder="Enter an address">
+                        <button id="searchButton" class="pulse">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="searchResult"></div>
+                </div>
+
+                <div class="route-list panel">
+                    <h3><i class="fas fa-route"></i> Routes <span id="routeCount"></span></h3>
+                    <ul id="routesList"></ul>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-overlay">
+                    <div class="logo-watermark">
+                        <img src="paf-logo.png" alt="Project Angel Food" class="watermark">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel Modal -->
+        <div id="adminPanel" class="modal">
+            <div class="modal-content animate__animated">
+                <div class="modal-header">
+                    <h2><i class="fas fa-lock"></i> Admin Panel</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div id="adminLogin">
+                    <div class="input-group">
+                        <label for="adminPassword">Admin Password</label>
+                        <input type="password" id="adminPassword" placeholder="Enter password">
+                    </div>
+                    <button id="loginButton" class="primary-btn">Login</button>
+                </div>
+                <div id="adminControls" style="display: none;">
+                    <div class="admin-section">
+                        <h3><i class="fas fa-draw-polygon"></i> Zone Editor</h3>
+                        <button id="drawZoneButton" class="action-btn"><i class="fas fa-plus"></i> Draw New Zone</button>
+                        <div id="zoneProperties" style="display: none;">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="zoneName">Zone Name</label>
+                                    <input type="text" id="zoneName" placeholder="Zone Name">
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneDay">Day</label>
+                                    <select id="zoneDay">
+                                        <option value="Sunday">Sunday</option>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Tuesday">Tuesday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Thursday">Thursday</option>
+                                        <option value="Friday">Friday</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneDriver">Driver</label>
+                                    <input type="text" id="zoneDriver" placeholder="Driver Name">
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneDeliveries">Deliveries</label>
+                                    <input type="number" id="zoneDeliveries" placeholder="# of Deliveries">
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="zoneRestricted">
+                                    <label for="zoneRestricted">Restricted Zone</label>
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <button id="saveZoneButton" class="save-btn"><i class="fas fa-save"></i> Save Zone</button>
+                                <button id="cancelZoneButton" class="cancel-btn"><i class="fas fa-times"></i> Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-section">
+                        <h3><i class="fas fa-database"></i> Route Management</h3>
+                        <div class="button-group">
+                            <button id="exportRoutes" class="action-btn"><i class="fas fa-download"></i> Export Routes</button>
+                            <button id="importRoutes" class="action-btn"><i class="fas fa-upload"></i> Import Routes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast notifications -->
+        <div id="toast-container"></div>
+    </div>
+
+    <!-- All scripts at the end of the body in correct order -->
+    <script src="routes.js"></script>
+    <script src="app.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD6dMrmfhOuABbU3_0zspACG_CO_VjIgxo&callback=initMap&libraries=drawing,places,geometry"></script>
 </body>
 </html>
