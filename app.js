@@ -41,6 +41,14 @@ window.addEventListener('DOMContentLoaded', () => {
             loadingScreen.style.visibility = 'hidden';
         }
     }, 2000);
+
+    // Detect Google Maps loading issues
+    const mapsScript = document.getElementById('googleMapsScript');
+    if (mapsScript) {
+        mapsScript.addEventListener('error', () => {
+            showErrorDialog('Failed to load Google Maps. Please check your internet connection or API key.');
+        });
+    }
 });
 
 // Initialize Google Map
