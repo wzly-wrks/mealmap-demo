@@ -22,7 +22,6 @@ This is a custom web app for managing delivery routes across LA County.
 - Address search + zone match
 - Editable zones (draw, label, assign day, toggle restricted)
 - Dark mode toggle
-- Admin panel (password: `routeadmin2025`)
 
 ## Hosting
 Upload this folder to GitHub Pages or any static host.
