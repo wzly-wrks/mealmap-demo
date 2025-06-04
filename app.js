@@ -78,13 +78,22 @@ function initMap() {
             }
         });
 
+        // Expose core instances for legacy scripts
+        window.map = globals.map;
+        window.currentDay = globals.currentDay;
+        window.currentRoutes = globals.currentRoutes;
+        window.routePolygons = globals.routePolygons;
+
         // Initialize services with error handling
         try {
             globals.geocoder = new google.maps.Geocoder();
-            globals.infoWindow = new google.maps.InfoWindow({ 
+            globals.infoWindow = new google.maps.InfoWindow({
                 maxWidth: 300,
                 pixelOffset: new google.maps.Size(0, -30)
             });
+            // Make services available to older code
+            window.geocoder = globals.geocoder;
+            window.infoWindow = globals.infoWindow;
         } catch (error) {
             console.error("Failed to initialize Google Maps services:", error);
             showToast('error', 'Failed to initialize map services');
@@ -175,6 +184,9 @@ function initDrawingManager() {
     });
 
     globals.drawingManager.setMap(globals.map);
+
+    // Share drawing manager with legacy scripts
+    window.drawingManager = globals.drawingManager;
 
     // Add polygon completion listener with error handling
     google.maps.event.addListener(globals.drawingManager, 'polygoncomplete', (polygon) => {
