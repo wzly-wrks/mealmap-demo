@@ -8,7 +8,6 @@ const globals = {
     currentDay: 'Sunday',
     currentRoutes: [],
     routeLayers: [],
-    labelLayers: [],
     darkMode: false,
     mapStyles: {
         light: 'mapbox://styles/mapbox/streets-v11',
@@ -111,11 +110,7 @@ function displayRoutesByDay(day) {
 
 function removeRouteLayers() {
     [...globals.routeLayers, ...globals.labelLayers].forEach(id => {
-        if (globals.map.getLayer(id)) globals.map.removeLayer(id);
-        if (globals.map.getSource(id)) globals.map.removeSource(id);
-    });
-    globals.routeLayers = [];
-    globals.labelLayers = [];
+    globals.routeLayers.forEach(id => {
 }
 
 function searchAddress() {
