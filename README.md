@@ -19,8 +19,8 @@ This is a custom web app for managing delivery routes across LA County. The map 
 - Interactive map with day selector
 - Route overlays with labels
 - Restricted zone styling (grayed out)
-- Address search + zone match
-- Editable zones (draw, label, assign day, toggle restricted)
+- Address search and zone matching
+- Editable zones using Mapbox Draw (draw, label, assign day, toggle restricted)
 - Dark mode toggle
 
 ## Hosting
