@@ -13,15 +13,16 @@
 
 # Meal Map Demo
 
-This is a custom web app for managing delivery routes across LA County.
+This is a custom web app for managing delivery routes across LA County. The map implementation now relies on **Mapbox GL JS** instead of Google Maps.
 
 ## Features
 - Interactive map with day selector
 - Route overlays with labels
 - Restricted zone styling (grayed out)
-- Address search + zone match
-- Editable zones (draw, label, assign day, toggle restricted)
+- Address search and zone matching
+- Editable zones using Mapbox Draw (draw, label, assign day, toggle restricted)
 - Dark mode toggle
 
 ## Hosting
 Upload this folder to GitHub Pages or any static host.
+Create a `config.js` file (based on `config.js.example`) and set `window.MAPBOX_TOKEN` to your Mapbox access token. This file is gitignored so your secret key stays private. Ensure `config.js` is loaded before `mapbox.js` in the HTML so the token is available when the map initializes.
