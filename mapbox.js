@@ -20,26 +20,36 @@ function initMap() {
     if (!MAPBOX_TOKEN) {
         console.error('Mapbox token missing');
     }
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    globals.map = new mapboxgl.Map({
-        container: 'map',
-        style: globals.mapStyles.light,
-        center: [-118.2437, 34.0522],
-        zoom: 10
-    });
 
-    globals.map.addControl(new mapboxgl.NavigationControl());
+    try {
+        mapboxgl.accessToken = MAPBOX_TOKEN;
+        globals.map = new mapboxgl.Map({
+            container: 'map',
+            style: globals.mapStyles.light,
+            center: [-118.2437, 34.0522],
+            zoom: 10
+        });
 
-    globals.draw = new MapboxDraw({
-        displayControlsDefault: false,
-        controls: { polygon: true, trash: true }
-    });
-    globals.map.addControl(globals.draw);
+        globals.map.addControl(new mapboxgl.NavigationControl());
 
-    globals.map.on('load', hideLoadingScreen);
+        globals.draw = new MapboxDraw({
+            displayControlsDefault: false,
+            controls: { polygon: true, trash: true }
+        });
+        globals.map.addControl(globals.draw);
 
-    setupEventListeners();
-    displayRoutesByDay(globals.currentDay);
+        globals.map.on('load', hideLoadingScreen);
+        globals.map.on('error', e => {
+            console.error('Mapbox error:', e.error);
+            hideLoadingScreen();
+        });
+
+        setupEventListeners();
+        displayRoutesByDay(globals.currentDay);
+    } catch (err) {
+        console.error('Error initializing map:', err);
+        hideLoadingScreen();
+    }
 }
 
 function setupEventListeners() {
@@ -130,37 +140,40 @@ function hideLoadingScreen() {
     }
 }
 
-function searchAddress() {
+async function searchAddress() {
     const address = document.getElementById('addressSearch').value;
     const resultDiv = document.getElementById('searchResult');
     if (!address) {
         resultDiv.textContent = 'Please enter an address';
         return;
     }
+
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${MAPBOX_TOKEN}`;
-    fetch(url)
-        .then(r => r.json())
-        .then(data => {
-            if (data.features && data.features.length) {
-                const [lng, lat] = data.features[0].center;
-                globals.map.flyTo({ center: [lng, lat], zoom: 14 });
-                let message = data.features[0].place_name;
-                const pt = turf.point([lng, lat]);
-                const match = globals.currentRoutes.find(r => {
-                    const poly = turf.polygon([r.path.map(p => [p.lng, p.lat])]);
-                    return turf.booleanPointInPolygon(pt, poly);
-                });
-                if (match) {
-                    message += ` \u2013 Zone: ${match.name}`;
-                }
-                resultDiv.textContent = message;
-            } else {
-                resultDiv.textContent = 'Address not found.';
+
+    try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+
+        if (data.features && data.features.length) {
+            const [lng, lat] = data.features[0].center;
+            globals.map.flyTo({ center: [lng, lat], zoom: 14 });
+            let message = data.features[0].place_name;
+            const pt = turf.point([lng, lat]);
+            const match = globals.currentRoutes.find(r => {
+                const poly = turf.polygon([r.path.map(p => [p.lng, p.lat])]);
+                return turf.booleanPointInPolygon(pt, poly);
+            });
+            if (match) {
+                message += ` \u2013 Zone: ${match.name}`;
             }
-        })
-        .catch(() => {
-            resultDiv.textContent = 'Error searching address';
-        });
+            resultDiv.textContent = message;
+        } else {
+            resultDiv.textContent = 'Address not found.';
+        }
+    } catch (err) {
+        console.error('Geocoding error:', err);
+        resultDiv.textContent = 'Error searching address';
+    }
 }
 
 function toggleDarkMode() {
