@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.1/mapbox-gl-draw.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet">
 </head>
 <body class="light-mode">
     <!-- Loading screen -->
@@ -152,8 +155,21 @@
     </div>
 
     <!-- All scripts at the end of the body in correct order -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.1/mapbox-gl-draw.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="config.js"></script>
     <script src="routes.js"></script>
-    <script src="app.js"></script>
-    <script id="googleMapsScript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD6dMrmfhOuABbU3_0zspACG_CO_VjIgxo&callback=initMap&libraries=drawing,places,geometry" async defer></script>
+    <script src="mapbox.js"></script>
+    <script>
+        (function init() {
+            if (document.readyState !== 'loading') {
+                window.MealMap && typeof window.MealMap.initMap === 'function' && window.MealMap.initMap();
+            } else {
+                document.addEventListener('DOMContentLoaded', init);
+            }
+        })();
+    </script>
 </body>
 </html>
