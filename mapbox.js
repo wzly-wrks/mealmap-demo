@@ -88,18 +88,29 @@ function displayRoutesByDay(day) {
                 'fill-opacity': route.restricted ? 0.3 : 0.5
             }
         });
+        const labelId = `${id}-label`;
+        globals.map.addLayer({
+            id: labelId,
+            type: 'symbol',
+            source: id,
+            layout: {
+                'text-field': route.name,
+                'text-size': 12
+            },
+            paint: {
+                'text-color': route.restricted ? '#721c24' : '#202020'
+            }
+        });
         globals.routeLayers.push(id);
+        globals.labelLayers.push(labelId);
     });
     const countSpan = document.getElementById('routeCount');
     if (countSpan) countSpan.textContent = `(${globals.currentRoutes.length})`;
 }
 
 function removeRouteLayers() {
+    [...globals.routeLayers, ...globals.labelLayers].forEach(id => {
     globals.routeLayers.forEach(id => {
-        if (globals.map.getLayer(id)) globals.map.removeLayer(id);
-        if (globals.map.getSource(id)) globals.map.removeSource(id);
-    });
-    globals.routeLayers = [];
 }
 
 function searchAddress() {
@@ -116,7 +127,16 @@ function searchAddress() {
             if (data.features && data.features.length) {
                 const [lng, lat] = data.features[0].center;
                 globals.map.flyTo({ center: [lng, lat], zoom: 14 });
-                resultDiv.textContent = data.features[0].place_name;
+                let message = data.features[0].place_name;
+                const pt = turf.point([lng, lat]);
+                const match = globals.currentRoutes.find(r => {
+                    const poly = turf.polygon([r.path.map(p => [p.lng, p.lat])]);
+                    return turf.booleanPointInPolygon(pt, poly);
+                });
+                if (match) {
+                    message += ` \u2013 Zone: ${match.name}`;
+                }
+                resultDiv.textContent = message;
             } else {
                 resultDiv.textContent = 'Address not found.';
             }
@@ -130,6 +150,9 @@ function toggleDarkMode() {
     globals.darkMode = !globals.darkMode;
     const style = globals.darkMode ? globals.mapStyles.dark : globals.mapStyles.light;
     globals.map.setStyle(style);
+    globals.map.once('styledata', () => {
+        displayRoutesByDay(globals.currentDay);
+    });
     document.body.classList.toggle('dark-mode', globals.darkMode);
     document.body.classList.toggle('light-mode', !globals.darkMode);
     const icon = globals.darkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';

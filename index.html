@@ -163,13 +163,11 @@
     <script src="routes.js"></script>
     <script src="mapbox.js"></script>
     <script>
-        (function init() {
-            if (document.readyState !== 'loading') {
-                window.MealMap && typeof window.MealMap.initMap === 'function' && window.MealMap.initMap();
-            } else {
-                document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.MealMap && typeof window.MealMap.initMap === 'function') {
+                window.MealMap.initMap();
             }
-        })();
+        });
     </script>
 </body>
 </html>
