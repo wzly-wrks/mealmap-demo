@@ -8,6 +8,7 @@ const globals = {
     currentDay: 'Sunday',
     currentRoutes: [],
     routeLayers: [],
+    labelLayers: [],
     darkMode: false,
     mapStyles: {
         light: 'mapbox://styles/mapbox/streets-v11',
@@ -34,6 +35,8 @@ function initMap() {
         controls: { polygon: true, trash: true }
     });
     globals.map.addControl(globals.draw);
+
+    globals.map.on('load', hideLoadingScreen);
 
     setupEventListeners();
     displayRoutesByDay(globals.currentDay);
@@ -110,7 +113,21 @@ function displayRoutesByDay(day) {
 
 function removeRouteLayers() {
     [...globals.routeLayers, ...globals.labelLayers].forEach(id => {
-    globals.routeLayers.forEach(id => {
+        if (globals.map.getLayer(id)) globals.map.removeLayer(id);
+        if (globals.map.getSource(id)) globals.map.removeSource(id);
+    });
+    globals.routeLayers = [];
+    globals.labelLayers = [];
+}
+
+function hideLoadingScreen() {
+    const screen = document.getElementById('loading-screen');
+    if (screen) {
+        screen.style.opacity = '0';
+        setTimeout(() => {
+            screen.style.display = 'none';
+        }, 500);
+    }
 }
 
 function searchAddress() {
