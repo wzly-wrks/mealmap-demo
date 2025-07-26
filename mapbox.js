@@ -36,15 +36,15 @@ function initMap() {
     try {
         mapboxgl.accessToken = MAPBOX_TOKEN;
         globals.map = new mapboxgl.Map({
-
-    globals.map.on('load', () => {
-        document.getElementById('loading-screen').style.display = 'none';
-        console.log('Map has loaded, hiding loading screen.');
-    });
             container: 'map',
             style: globals.mapStyles.light,
             center: [-118.2437, 34.0522],
             zoom: 10
+        });
+
+        globals.map.on('load', () => {
+            document.getElementById('loading-screen').style.display = 'none';
+            console.log('Map has loaded, hiding loading screen.');
         });
 
         globals.map.addControl(new mapboxgl.NavigationControl());
