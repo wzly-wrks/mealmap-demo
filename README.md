@@ -25,4 +25,11 @@ This is a custom web app for managing delivery routes across LA County. The map 
 
 ## Hosting
 Upload this folder to GitHub Pages or any static host.
-Create a `config.js` file (based on `config.js.example`) and set `window.MAPBOX_TOKEN` to your Mapbox access token. This file is gitignored so your secret key stays private.
+Before running locally, copy `config.js.example` to `config.js` and place your Mapbox token in `window.MAPBOX_TOKEN`.
+This file is gitignored so your secret key stays private.
+You can then start a simple server with:
+
+```bash
+npm install -g serve
+serve .
+```
