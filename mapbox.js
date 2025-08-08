@@ -10,6 +10,12 @@ const globals = {
     currentRoutes: [],
     routeLayers: [],
     labelLayers: [],
+    orders: [],
+    orderMarkers: [],
+    routeColors: {},
+    colorPalette: ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#e67e22', '#1abc9c', '#2c3e50', '#ff69b4', '#7f8c8d'],
+    colorIndex: 0,
+    currentDrawId: null,
     darkMode: false,
     mapStyles: {
         light: 'mapbox://styles/mapbox/streets-v11',
@@ -49,6 +55,7 @@ async function initMap() {
             controls: { polygon: true, trash: true }
         });
         globals.map.addControl(globals.draw);
+        globals.map.on('draw.create', handleDrawCreate);
 
         globals.map.on('load', hideLoadingScreen);
         globals.map.on('error', e => {
@@ -135,6 +142,22 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Zone editing controls
+    const drawBtn = document.getElementById('drawZoneButton');
+    const saveBtn = document.getElementById('saveZoneButton');
+    const cancelBtn = document.getElementById('cancelZoneButton');
+    if (drawBtn) drawBtn.addEventListener('click', startDrawingZone);
+    if (saveBtn) saveBtn.addEventListener('click', saveZone);
+    if (cancelBtn) cancelBtn.addEventListener('click', cancelZone);
+
+    // Route import/export
+    const exportBtn = document.getElementById('exportRoutes');
+    const importBtn = document.getElementById('importRoutes');
+    const workwaveBtn = document.getElementById('importWorkwave');
+    if (exportBtn) exportBtn.addEventListener('click', exportRoutes);
+    if (importBtn) importBtn.addEventListener('click', importRoutes);
+    if (workwaveBtn) workwaveBtn.addEventListener('click', importWorkwaveOrders);
 }
 
 function displayRoutesByDay(day) {
@@ -186,6 +209,71 @@ function removeRouteLayers() {
     });
     globals.routeLayers = [];
     globals.labelLayers = [];
+}
+
+function getRouteColor(name) {
+    if (!globals.routeColors[name]) {
+        const color = globals.colorPalette[globals.colorIndex % globals.colorPalette.length];
+        globals.routeColors[name] = color;
+        globals.colorIndex += 1;
+    }
+    return globals.routeColors[name];
+}
+
+function displayOrders() {
+    removeOrderMarkers();
+    (globals.orders || []).forEach(order => {
+        const el = document.createElement('div');
+        el.style.backgroundColor = getRouteColor(order.route);
+        el.style.width = '12px';
+        el.style.height = '12px';
+        el.style.borderRadius = '50%';
+        el.style.border = '2px solid #fff';
+        const marker = new mapboxgl.Marker(el).setLngLat([order.lng, order.lat]).addTo(globals.map);
+        globals.orderMarkers.push(marker);
+    });
+}
+
+function removeOrderMarkers() {
+    globals.orderMarkers.forEach(m => m.remove());
+    globals.orderMarkers = [];
+}
+
+function importWorkwaveOrders() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv,text/csv';
+    input.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const text = ev.target.result;
+                const lines = text.split(/\r?\n/).filter(l => l.trim());
+                const headers = lines[0].split(',').map(h => h.trim());
+                globals.routeColors = {};
+                globals.colorIndex = 0;
+                globals.orders = lines.slice(1).map(line => {
+                    const cols = line.split(',');
+                    const obj = {};
+                    headers.forEach((h, i) => { obj[h] = (cols[i] || '').trim(); });
+                    return {
+                        route: obj.Route || obj.route || obj['Route Name'] || obj['route_name'] || 'Unknown',
+                        lat: parseFloat(obj.Latitude || obj.lat || obj.Lat || obj.latitude),
+                        lng: parseFloat(obj.Longitude || obj.lng || obj.Lng || obj.longitude)
+                    };
+                }).filter(o => o.route && !isNaN(o.lat) && !isNaN(o.lng));
+                window.orders = globals.orders;
+                displayOrders();
+            } catch (err) {
+                console.error('Failed to import WorkWave orders:', err);
+                alert('Failed to import WorkWave orders');
+            }
+        };
+        reader.readAsText(file);
+    });
+    input.click();
 }
 
 function hideLoadingScreen() {
@@ -249,6 +337,92 @@ async function searchAddress() {
         console.error('Geocoding error:', err);
         resultDiv.textContent = 'Error searching address';
     }
+}
+
+function startDrawingZone() {
+    if (!globals.draw) return;
+    const props = document.getElementById('zoneProperties');
+    if (props) props.style.display = 'none';
+    globals.draw.deleteAll();
+    globals.currentDrawId = null;
+    globals.draw.changeMode('draw_polygon');
+}
+
+function handleDrawCreate(e) {
+    if (e.features && e.features.length) {
+        globals.currentDrawId = e.features[0].id;
+        const props = document.getElementById('zoneProperties');
+        if (props) props.style.display = 'block';
+    }
+}
+
+function saveZone() {
+    if (!globals.currentDrawId) return;
+    const feature = globals.draw.get(globals.currentDrawId);
+    if (!feature) return;
+    const coords = feature.geometry.coordinates[0].map(([lng, lat]) => ({ lng, lat }));
+    const route = {
+        name: document.getElementById('zoneName').value || 'Unnamed Zone',
+        day: document.getElementById('zoneDay').value || 'Sunday',
+        driver: document.getElementById('zoneDriver').value || '',
+        deliveries: parseInt(document.getElementById('zoneDeliveries').value, 10) || 0,
+        restricted: document.getElementById('zoneRestricted').checked || false,
+        path: coords
+    };
+    window.routes = window.routes || [];
+    window.routes.push(route);
+    globals.draw.delete(globals.currentDrawId);
+    globals.currentDrawId = null;
+    const props = document.getElementById('zoneProperties');
+    if (props) props.style.display = 'none';
+    displayRoutesByDay(globals.currentDay);
+}
+
+function cancelZone() {
+    if (globals.currentDrawId) {
+        globals.draw.delete(globals.currentDrawId);
+        globals.currentDrawId = null;
+    }
+    const props = document.getElementById('zoneProperties');
+    if (props) props.style.display = 'none';
+}
+
+function exportRoutes() {
+    const data = JSON.stringify(window.routes || [], null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'routes.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importRoutes() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if (Array.isArray(data)) {
+                    window.routes = (window.routes || []).concat(data);
+                    displayRoutesByDay(globals.currentDay);
+                } else {
+                    alert('Invalid route data');
+                }
+            } catch (err) {
+                console.error('Failed to import routes:', err);
+                alert('Failed to import routes');
+            }
+        };
+        reader.readAsText(file);
+    });
+    input.click();
 }
 
 function toggleDarkMode() {
