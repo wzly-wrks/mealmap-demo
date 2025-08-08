@@ -240,40 +240,93 @@ function removeOrderMarkers() {
 }
 
 function importWorkwaveOrders() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.csv,text/csv';
-    input.addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-            try {
-                const text = ev.target.result;
-                const lines = text.split(/\r?\n/).filter(l => l.trim());
-                const headers = lines[0].split(',').map(h => h.trim());
-                globals.routeColors = {};
-                globals.colorIndex = 0;
-                globals.orders = lines.slice(1).map(line => {
-                    const cols = line.split(',');
-                    const obj = {};
-                    headers.forEach((h, i) => { obj[h] = (cols[i] || '').trim(); });
-                    return {
-                        route: obj.Route || obj.route || obj['Route Name'] || obj['route_name'] || 'Unknown',
-                        lat: parseFloat(obj.Latitude || obj.lat || obj.Lat || obj.latitude),
-                        lng: parseFloat(obj.Longitude || obj.lng || obj.Lng || obj.longitude)
-                    };
-                }).filter(o => o.route && !isNaN(o.lat) && !isNaN(o.lng));
-                window.orders = globals.orders;
-                displayOrders();
-            } catch (err) {
-                console.error('Failed to import WorkWave orders:', err);
-                alert('Failed to import WorkWave orders');
+    // Show loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.id = 'workwave-loading';
+    loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing orders from WorkWave...';
+    loadingIndicator.style.position = 'fixed';
+    loadingIndicator.style.top = '50%';
+    loadingIndicator.style.left = '50%';
+    loadingIndicator.style.transform = 'translate(-50%, -50%)';
+    loadingIndicator.style.padding = '20px';
+    loadingIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    loadingIndicator.style.color = 'white';
+    loadingIndicator.style.borderRadius = '5px';
+    loadingIndicator.style.zIndex = '9999';
+    document.body.appendChild(loadingIndicator);
+    
+    // Ask user which data source to use
+    const dataSource = confirm(
+        "Import from WorkWave Route Manager:\n\n" +
+        "• Click OK for PLANNED ROUTES (select a date)\n" +
+        "• Click Cancel for TODAY'S ROUTES (current date only)"
+    ) ? "planned" : "today";
+    
+    let apiEndpoint;
+    let dateStr = '';
+    
+    if (dataSource === "planned") {
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Allow user to select a date
+        dateStr = prompt('Enter date (YYYY-MM-DD) or leave blank for today:', today);
+        const date = dateStr || today;
+        
+        apiEndpoint = `http://localhost:3003/api/workwave/orders?date=${date}`;
+        loadingIndicator.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Importing orders for ${date}...`;
+    } else {
+        // Use current routes endpoint
+        apiEndpoint = 'http://localhost:3003/api/workwave/current-orders';
+        loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing today\'s routes...';
+    }
+    
+    // Fetch orders from our server API
+    fetch(apiEndpoint)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
             }
-        };
-        reader.readAsText(file);
-    });
-    input.click();
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+            
+            // Reset route colors
+            globals.routeColors = {};
+            globals.colorIndex = 0;
+            
+            // Update orders with the data from WorkWave
+            globals.orders = data.orders.filter(o => o.route && !isNaN(o.lat) && !isNaN(o.lng));
+            window.orders = globals.orders;
+            
+            if (globals.orders.length === 0) {
+                // No orders found
+                const dateInfo = dataSource === "planned" && dateStr ? ` for ${dateStr}` : '';
+                alert(`No orders found${dateInfo}. ${data.message || ''}`);
+            } else {
+                // Display the orders on the map
+                displayOrders();
+                
+                // Show success message
+                const source = dataSource === "planned" ? "planned routes" : "today's routes";
+                const routeCount = new Set(globals.orders.map(o => o.route)).size;
+                alert(`Successfully imported ${globals.orders.length} orders from ${routeCount} ${source}`);
+            }
+        })
+        .catch(err => {
+            console.error('Failed to import WorkWave orders:', err);
+            alert(`Failed to import WorkWave orders: ${err.message}\n\nPlease check your API credentials and try again.`);
+        })
+        .finally(() => {
+            // Remove loading indicator
+            const loadingElement = document.getElementById('workwave-loading');
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+        });
 }
 
 function hideLoadingScreen() {
