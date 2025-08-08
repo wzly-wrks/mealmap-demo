@@ -128,6 +128,14 @@
                                     <label for="zoneDeliveries">Deliveries</label>
                                     <input type="number" id="zoneDeliveries" placeholder="# of Deliveries">
                                 </div>
+                                <div class="input-group">
+                                    <label for="zoneCapacity">Route Capacity</label>
+                                    <input type="number" id="zoneCapacity" placeholder="Max Deliveries">
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneVan">Van Number</label>
+                                    <input type="text" id="zoneVan" placeholder="e.g., VAN-01">
+                                </div>
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="zoneRestricted">
                                     <label for="zoneRestricted">Restricted Zone</label>
@@ -163,6 +171,7 @@
     <script src="config.js"></script>
     <script src="routes.js"></script>
     <script src="mapbox.js"></script>
+    <script src="van_overlay.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.MealMap && typeof window.MealMap.initMap === 'function') {

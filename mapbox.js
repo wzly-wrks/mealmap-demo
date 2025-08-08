@@ -74,6 +74,16 @@ async function initMap() {
 }
 
 function setupEventListeners() {
+    // Initialize route names from Excel data
+    if (window.MealMap && window.MealMap.initializeRouteNames) {
+        window.MealMap.initializeRouteNames();
+    }
+    
+    // Initialize floating day selector
+    if (window.MealMap && window.MealMap.initializeFloatingDaySelector) {
+        window.MealMap.initializeFloatingDaySelector();
+    }
+    
     const dayButtons = document.querySelectorAll('.day-buttons button');
     dayButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -81,12 +91,22 @@ function setupEventListeners() {
             dayButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             displayRoutesByDay(globals.currentDay);
+            
+            // Update the new day selector
+            const daySelect = document.getElementById('daySelect');
+            if (daySelect) daySelect.value = globals.currentDay;
+            
+            // Create van overlays
+            if (window.MealMap && window.MealMap.createVanOverlays) {
+                window.MealMap.createVanOverlays();
+            }
         });
         if (btn.getAttribute('data-day') === globals.currentDay) {
             btn.classList.add('active');
         }
     });
 
+    // Legacy search functionality
     const searchBtn = document.getElementById('searchButton');
     if (searchBtn) searchBtn.addEventListener('click', searchAddress);
     const searchInput = document.getElementById('addressSearch');
@@ -162,7 +182,14 @@ function setupEventListeners() {
 
 function displayRoutesByDay(day) {
     removeRouteLayers();
+    globals.currentDay = day;
     globals.currentRoutes = (window.routes || []).filter(r => r.day === day);
+    
+    // Create van overlays if available
+    if (window.MealMap && window.MealMap.createVanOverlays) {
+        window.MealMap.createVanOverlays();
+    }
+    
     globals.currentRoutes.forEach((route, idx) => {
         const id = `route-${idx}`;
         const geojson = {
@@ -419,6 +446,8 @@ function saveZone() {
         day: document.getElementById('zoneDay').value || 'Sunday',
         driver: document.getElementById('zoneDriver').value || '',
         deliveries: parseInt(document.getElementById('zoneDeliveries').value, 10) || 0,
+        capacity: parseInt(document.getElementById('zoneCapacity').value, 10) || 0,
+        vanNumber: document.getElementById('zoneVan').value || '',
         restricted: document.getElementById('zoneRestricted').checked || false,
         path: coords
     };
