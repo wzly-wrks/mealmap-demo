@@ -428,7 +428,14 @@ function saveZone() {
     globals.currentDrawId = null;
     const props = document.getElementById('zoneProperties');
     if (props) props.style.display = 'none';
+    
+    // Display routes for the current day
     displayRoutesByDay(globals.currentDay);
+    
+    // Make sure orders remain visible after saving a zone
+    if (globals.orders && globals.orders.length > 0) {
+        displayOrders();
+    }
 }
 
 function cancelZone() {
@@ -438,6 +445,11 @@ function cancelZone() {
     }
     const props = document.getElementById('zoneProperties');
     if (props) props.style.display = 'none';
+    
+    // Make sure orders remain visible after canceling a zone
+    if (globals.orders && globals.orders.length > 0) {
+        displayOrders();
+    }
 }
 
 function exportRoutes() {
