@@ -1,0 +1,27 @@
+{
+  "name": "mealmap-demo",
+  "version": "1.0.0",
+  "description": "<p align=\"center\"> <pre>                      ██╗    ██╗███████╗██╗  ██╗   ██╗██╗    ██╗██████╗ ██╗  ██╗███████╗                      ██║    ██║╚══███╔╝██║  ╚██╗ ██╔╝██║    ██║██╔══██╗██║ ██╔╝██╔════╝                      ██║ █╗ ██║  ███╔╝ ██║   ╚████╔╝ ██║ █╗ ██║██████╔╝█████╔╝ ███████╗                      ██║███╗██║ ███╔╝  ██║    ╚██╔╝  ██║███╗██║██╔══██╗██╔═██╗ ╚════██║                      ╚███╔███╔╝███████╗███████╗██║██╗╚███╔███╔╝██║  ██║██║  ██╗███████║                       ╚══╝╚══╝ ╚══════╝╚══════╝╚═╝╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝                                                 wzly.wrks </pre> </p>",
+  "main": "config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wzly-wrks/mealmap-demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wzly-wrks/mealmap-demo/issues"
+  },
+  "homepage": "https://github.com/wzly-wrks/mealmap-demo#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "node-fetch": "^2.7.0"
+  }
+}

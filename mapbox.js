@@ -1,3 +1,4 @@
+
 // Mapbox based map implementation
 // Mapbox access token is provided via config.js as window.MAPBOX_TOKEN
 const MAPBOX_TOKEN = window.MAPBOX_TOKEN || '';
@@ -16,22 +17,17 @@ const globals = {
     }
 };
 
-function initMap() {
-
+async function initMap() {
     if (!MAPBOX_TOKEN) {
         console.error('Mapbox token missing. Did you forget to set it in config.js?');
         alert('Mapbox token is missing. Please check config.js.');
         return;
     }
 
-    // Show spinner fallback timeout
     setTimeout(() => {
         document.getElementById('loading-screen').style.display = 'none';
         console.warn('Loading screen timed out after 8 seconds.');
     }, 8000);
-    if (!MAPBOX_TOKEN) {
-        console.error('Mapbox token missing');
-    }
 
     try {
         mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -48,7 +44,6 @@ function initMap() {
         });
 
         globals.map.addControl(new mapboxgl.NavigationControl());
-
         globals.draw = new MapboxDraw({
             displayControlsDefault: false,
             controls: { polygon: true, trash: true }
@@ -61,7 +56,9 @@ function initMap() {
             hideLoadingScreen();
         });
 
+        document.getElementById('adminControls').style.display = 'none';
         setupEventListeners();
+        await loadRoutes();
         displayRoutesByDay(globals.currentDay);
     } catch (err) {
         console.error('Error initializing map:', err);
@@ -94,6 +91,50 @@ function setupEventListeners() {
 
     const darkToggle = document.getElementById('darkModeToggle');
     if (darkToggle) darkToggle.addEventListener('click', toggleDarkMode);
+
+    // === Admin Panel Logic ===
+    const adminBtn = document.getElementById('adminPanelButton');
+    const adminModal = document.getElementById('adminPanel');
+    const closeBtn = adminModal?.querySelector('.close');
+    const loginSection = document.getElementById('adminLogin');
+    const controlsSection = document.getElementById('adminControls');
+    const loginButton = document.getElementById('loginButton');
+    const passwordInput = document.getElementById('adminPassword');
+
+    if (adminBtn && adminModal) {
+        adminBtn.addEventListener('click', () => {
+            adminModal.style.display = 'block';
+            adminModal.classList.add('animate__fadeInDown');
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            adminModal.style.display = 'none';
+            adminModal.classList.remove('animate__fadeInDown');
+        });
+    }
+
+    window.addEventListener('click', e => {
+        if (e.target === adminModal) {
+            adminModal.style.display = 'none';
+            adminModal.classList.remove('animate__fadeInDown');
+        }
+    });
+
+    if (loginButton && passwordInput) {
+        loginButton.addEventListener('click', () => {
+            const pw = passwordInput.value.trim();
+            if (pw === 'angel2025') {
+                loginSection.style.display = 'none';
+                controlsSection.style.display = 'block';
+        document.getElementById('adminControls').style.display = 'block';
+                passwordInput.value = '';
+            } else {
+                alert('Incorrect password');
+            }
+        });
+    }
 }
 
 function displayRoutesByDay(day) {
@@ -157,6 +198,23 @@ function hideLoadingScreen() {
     }
 }
 
+async function loadRoutes() {
+    try {
+        const resp = await fetch('/api/routes');
+        const data = await resp.json();
+        if (!Array.isArray(data)) return;
+        window.routes = data.map(route => ({
+            name: route.name || 'Unnamed Route',
+            day: route.day || 'Sunday',
+            restricted: route.restricted || false,
+            path: route.path || [] // array of { lat, lng }
+        }));
+    } catch (err) {
+        console.error('Failed to load routes:', err);
+        window.routes = [];
+    }
+}
+
 async function searchAddress() {
     const address = document.getElementById('addressSearch').value;
     const resultDiv = document.getElementById('searchResult');
@@ -181,7 +239,7 @@ async function searchAddress() {
                 return turf.booleanPointInPolygon(pt, poly);
             });
             if (match) {
-                message += ` \u2013 Zone: ${match.name}`;
+                message += ` – Zone: ${match.name}`;
             }
             resultDiv.textContent = message;
         } else {
