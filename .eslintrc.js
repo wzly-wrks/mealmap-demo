@@ -9,6 +9,10 @@ module.exports = {
   extends: 'airbnb-base',
   parserOptions: {
     ecmaVersion: 12,
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+    },
   },
   rules: {
     // Allow console.log in development, warn in production

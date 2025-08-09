@@ -11,6 +11,9 @@ import '../css/user_interface.css';
 // Import utility modules
 import './utils/html-sanitizer';
 
+// React components
+import './react/day-selector.jsx';
+
 // Import core modules
 import './core/map-manager';
 import './core/route-assignments';
