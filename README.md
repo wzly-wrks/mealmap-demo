@@ -247,6 +247,7 @@ If you discover a security vulnerability, please send an email to security@ninja
 5. Open a Pull Request
 
 ---
+<p align="center" style="background-color:#111; color:#0f0; padding:10px; border-radius:5px;">
+  <code>Created with ❤️ in ~/Los_Angeles by weezly-works ©️ 2025</code>
+</p>
 
-© 2025 weezly.works | Project Angel Food
-<br>Created with ❤️ in ~/Los_Angeles by wzly-wrks
