@@ -36,6 +36,9 @@ function initUserInterface() {
     
     // Initialize password management
     initPasswordManagement();
+    
+    // Initialize exit admin mode button
+    initExitAdminModeButton();
 }
 
 // Load user preferences from localStorage
@@ -88,6 +91,12 @@ function setUserMode(isUserMode) {
         adminBtn.title = isUserMode ? 'Admin Login' : 'Admin Mode Active';
     }
     
+    // Show/hide exit admin mode button
+    const exitBtn = document.getElementById('exitAdminModeButton');
+    if (exitBtn) {
+        exitBtn.style.display = isUserMode ? 'none' : '';
+    }
+    
     // Hide draw controls in user mode
     if (globals.map && globals.draw) {
         try {
@@ -122,7 +131,8 @@ function enhancedSearchAddress() {
 
     resultDiv.textContent = 'Searching...';
     
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${MAPBOX_TOKEN}`;
+    // Limit search to US addresses only
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?country=us&access_token=${MAPBOX_TOKEN}`;
 
     fetch(url)
         .then(resp => resp.json())
@@ -176,15 +186,31 @@ function enhancedSearchAddress() {
                     
                     resultDiv.textContent = `${data.features[0].place_name} – Route: ${routeName} (${globals.currentDay})`;
                 } else {
-                    popupContent = `
-                        <div class="address-popup">
-                            <h3>No Route Available</h3>
-                            <p>There is no delivery route for this location on ${globals.currentDay}.</p>
-                            <button class="close-popup-btn"><i class="fas fa-times"></i></button>
-                        </div>
-                    `;
+                    // Check if there are any routes loaded for the current day
+                    const hasRoutesForDay = globals.currentRoutes && globals.currentRoutes.length > 0;
                     
-                    resultDiv.textContent = `${data.features[0].place_name} – No route available for ${globals.currentDay}`;
+                    if (hasRoutesForDay) {
+                        popupContent = `
+                            <div class="address-popup">
+                                <h3>No Route Available</h3>
+                                <p>There is no delivery route for this location on ${globals.currentDay}.</p>
+                                <button class="close-popup-btn"><i class="fas fa-times"></i></button>
+                            </div>
+                        `;
+                        
+                        resultDiv.textContent = `${data.features[0].place_name} – No route available for ${globals.currentDay}`;
+                    } else {
+                        popupContent = `
+                            <div class="address-popup">
+                                <h3>Routes Not Loaded</h3>
+                                <p>No routes have been loaded for ${globals.currentDay}.</p>
+                                <p>Please import routes from WorkWave or create routes in admin mode.</p>
+                                <button class="close-popup-btn"><i class="fas fa-times"></i></button>
+                            </div>
+                        `;
+                        
+                        resultDiv.textContent = `${data.features[0].place_name} – Routes not loaded for ${globals.currentDay}`;
+                    }
                 }
                 
                 // Create and add the popup
@@ -547,6 +573,107 @@ function initPasswordManagement() {
     if (!changePasswordBtn) return;
     
     changePasswordBtn.addEventListener('click', changeAdminPassword);
+    
+    // Initialize API configuration
+    initApiConfiguration();
+}
+
+// Initialize API configuration
+function initApiConfiguration() {
+    const importEnvBtn = document.getElementById('importEnvFile');
+    const envFileInput = document.getElementById('envFileInput');
+    const saveApiConfigBtn = document.getElementById('saveApiConfig');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const territoryIdInput = document.getElementById('territoryIdInput');
+    
+    if (!importEnvBtn || !envFileInput || !saveApiConfigBtn) return;
+    
+    // Load existing API configuration if available
+    const apiConfig = localStorage.getItem('apiConfig');
+    if (apiConfig) {
+        try {
+            const config = JSON.parse(apiConfig);
+            if (apiKeyInput) apiKeyInput.value = config.apiKey || '';
+            if (territoryIdInput) territoryIdInput.value = config.territoryId || '';
+        } catch (err) {
+            console.error('Failed to load API configuration:', err);
+        }
+    }
+    
+    // Import .env file
+    importEnvBtn.addEventListener('click', () => {
+        envFileInput.click();
+    });
+    
+    envFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const content = event.target.result;
+            parseEnvFile(content);
+        };
+        reader.readAsText(file);
+    });
+    
+    // Save API configuration
+    saveApiConfigBtn.addEventListener('click', () => {
+        const apiKey = apiKeyInput.value.trim();
+        const territoryId = territoryIdInput.value.trim();
+        
+        if (!apiKey || !territoryId) {
+            showToast('Please enter both API Key and Territory ID', 'error');
+            return;
+        }
+        
+        try {
+            const config = { apiKey, territoryId };
+            localStorage.setItem('apiConfig', JSON.stringify(config));
+            showToast('API configuration saved successfully', 'success');
+        } catch (err) {
+            console.error('Failed to save API configuration:', err);
+            showToast('Failed to save API configuration', 'error');
+        }
+    });
+}
+
+// Parse .env file
+function parseEnvFile(content) {
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const territoryIdInput = document.getElementById('territoryIdInput');
+    
+    if (!apiKeyInput || !territoryIdInput) return;
+    
+    const lines = content.split('\n');
+    let apiKey = '';
+    let territoryId = '';
+    
+    lines.forEach(line => {
+        line = line.trim();
+        if (line && !line.startsWith('#')) {
+            const [key, value] = line.split('=');
+            if (key && value) {
+                const trimmedKey = key.trim();
+                const trimmedValue = value.trim();
+                
+                if (trimmedKey === 'API_KEY') {
+                    apiKey = trimmedValue;
+                } else if (trimmedKey === 'TERRITORY_ID') {
+                    territoryId = trimmedValue;
+                }
+            }
+        }
+    });
+    
+    if (apiKey) apiKeyInput.value = apiKey;
+    if (territoryId) territoryIdInput.value = territoryId;
+    
+    if (apiKey && territoryId) {
+        showToast('.env file imported successfully', 'success');
+    } else {
+        showToast('Could not find API_KEY or TERRITORY_ID in .env file', 'error');
+    }
 }
 
 // Change admin password
@@ -623,6 +750,20 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
+// Initialize exit admin mode button
+function initExitAdminModeButton() {
+    const exitButton = document.getElementById('exitAdminModeButton');
+    if (!exitButton) return;
+    
+    exitButton.addEventListener('click', () => {
+        // Switch back to user mode
+        setUserMode(true);
+        
+        // Show user mode indicator
+        showToast('Switched to View-Only Mode', 'info');
+    });
+}
+
 // Add to window.MealMap object
 window.MealMap = window.MealMap || {};
 window.MealMap.initUserInterface = initUserInterface;
@@ -630,3 +771,4 @@ window.MealMap.enhancedSearchAddress = enhancedSearchAddress;
 window.MealMap.setUserMode = setUserMode;
 window.MealMap.toggleHelpResources = toggleHelpResources;
 window.MealMap.initPasswordManagement = initPasswordManagement;
+window.MealMap.showToast = showToast;

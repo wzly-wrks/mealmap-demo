@@ -450,7 +450,8 @@ async function searchAddress() {
         return;
     }
 
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${MAPBOX_TOKEN}`;
+    // Limit search to US addresses only
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?country=us&access_token=${MAPBOX_TOKEN}`;
 
     try {
         const resp = await fetch(url);

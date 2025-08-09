@@ -244,17 +244,22 @@ function showRouteManagementPanel(route) {
     const routeName = globals.routeNamesByDay[route.day][route.vanNumber] || route.name;
     document.getElementById('routeName').value = routeName;
     
+    // Set driver, deliveries, and capacity
+    document.getElementById('routeDriver').value = route.driver || '';
+    document.getElementById('routeDeliveries').value = route.deliveries || 0;
+    document.getElementById('routeCapacity').value = route.capacity || '';
+    
     // Store the route reference
     panel.dataset.routeId = window.routes.indexOf(route);
     
     // Show the panel
     panel.style.display = 'block';
+    panel.querySelector('.modal-content').classList.add('animate__fadeInDown');
     
     // Add event listeners
     document.getElementById('saveRouteEdit').onclick = saveRouteChanges;
-    document.getElementById('cancelRouteEdit').onclick = () => {
-        panel.style.display = 'none';
-    };
+    document.getElementById('cancelRouteEdit').onclick = closeRoutePanel;
+    document.getElementById('closeRoutePanel').onclick = closeRoutePanel;
     
     // Update route name when van changes
     document.getElementById('routeVan').addEventListener('change', function() {
@@ -264,6 +269,22 @@ function showRouteManagementPanel(route) {
             document.getElementById('routeName').value = globals.routeNamesByDay[day][van];
         }
     });
+    
+    // Close panel when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === panel) {
+            closeRoutePanel();
+        }
+    });
+}
+
+// Close route management panel
+function closeRoutePanel() {
+    const panel = document.getElementById('routeManagementPanel');
+    if (!panel) return;
+    
+    panel.querySelector('.modal-content').classList.remove('animate__fadeInDown');
+    panel.style.display = 'none';
 }
 
 // Save route changes
@@ -278,11 +299,27 @@ function saveRouteChanges() {
     const day = document.getElementById('routeDay').value;
     const vanNumber = document.getElementById('routeVan').value;
     const routeName = document.getElementById('routeName').value;
+    const driver = document.getElementById('routeDriver').value;
+    const deliveries = parseInt(document.getElementById('routeDeliveries').value) || 0;
+    const capacity = parseInt(document.getElementById('routeCapacity').value) || 0;
+    
+    // Validate capacity
+    if (capacity > 0 && deliveries > capacity) {
+        if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+            window.MealMap.showToast('Deliveries cannot exceed capacity', 'error');
+        } else {
+            alert('Deliveries cannot exceed capacity');
+        }
+        return;
+    }
     
     // Update route
     route.day = day;
     route.vanNumber = vanNumber;
     route.name = routeName;
+    route.driver = driver;
+    route.deliveries = deliveries;
+    route.capacity = capacity;
     
     // Update route name in the global mapping
     if (!globals.routeNamesByDay[day]) {
@@ -291,7 +328,12 @@ function saveRouteChanges() {
     globals.routeNamesByDay[day][vanNumber] = routeName;
     
     // Hide panel
-    panel.style.display = 'none';
+    closeRoutePanel();
+    
+    // Show success message
+    if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+        window.MealMap.showToast('Route updated successfully', 'success');
+    }
     
     // Refresh display
     displayRoutesByDay(globals.currentDay);
