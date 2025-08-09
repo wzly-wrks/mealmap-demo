@@ -127,8 +127,8 @@ app.get('/api/workwave/current-orders', async (req, res) => {
 app.get('/api/workwave/test', async (req, res) => {
   try {
     console.log('Testing WorkWave API connection...');
-    console.log(`API Key: ${API_KEY.substring(0, 5)}...${API_KEY.substring(API_KEY.length - 5)}`);
-    console.log(`Territory ID: ${TERRITORY_ID}`);
+    console.log("API Key configured (hidden for security)");
+    console.log("Territory ID configured (hidden for security)");
     
     // Try to fetch territories as a simple test
     const response = await fetch(

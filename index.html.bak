@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Map - Project Angel Food</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="user_interface.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.1/mapbox-gl-draw.css" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet">
+</head>
+<body class="light-mode">
+    <!-- Loading screen -->
+    <div id="loading-screen">
+        <div class="loader-container">
+            <div class="logo-loader">
+                <img src="paf-logo.png" alt="Project Angel Food Logo" id="logo-loader">
+                <div class="loading-spinner"></div>
+            </div>
+            <h2>Loading Meal Map</h2>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="logo-container">
+                <div class="logo-wrapper">
+                    <img src="paf-logo.png" alt="Project Angel Food Logo" class="paf-logo">
+                </div>
+                <div class="title-wrapper">
+                    <h1>Meal Map</h1>
+                    <span class="subtitle">LA County Delivery Routes</span>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="darkModeToggle" class="animated-btn" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="adminPanelButton" class="animated-btn" title="Admin Panel">
+                <button id="exitAdminModeButton" class="animated-btn admin-only" title="Exit Edit Mode" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                    <i class="fas fa-lock"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="day-selector panel">
+                    <h3><i class="fas fa-calendar-day"></i> Select Day</h3>
+                    <div class="day-buttons">
+                        <button data-day="Sunday">Sunday</button>
+                        <button data-day="Monday">Monday</button>
+                        <button data-day="Tuesday">Tuesday</button>
+                        <button data-day="Wednesday">Wednesday</button>
+                        <button data-day="Thursday">Thursday</button>
+                        <button data-day="Friday">Friday</button>
+                    </div>
+                </div>
+
+                <div class="search-container panel">
+                    <h3><i class="fas fa-search"></i> Address Search</h3>
+                    <div class="search-input-group">
+                        <input type="text" id="addressSearch" placeholder="Enter an address">
+                        <button id="searchButton" class="pulse">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="searchResult"></div>
+                </div>
+
+                <div class="route-list panel">
+                    <h3><i class="fas fa-route"></i> Routes <span id="routeCount"></span></h3>
+                    <ul id="routesList"></ul>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-overlay">
+                    <div class="logo-watermark">
+                        <img src="paf-logo.png" alt="Project Angel Food" class="watermark">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel Modal -->
+        <div id="adminPanel" class="modal">
+            <div class="modal-content animate__animated">
+                <div class="modal-header">
+                    <h2><i class="fas fa-lock"></i> Admin Panel</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div id="adminLogin">
+                    <div class="input-group">
+                        <label for="adminPassword">Admin Password</label>
+                        <input type="password" id="adminPassword" placeholder="Enter password">
+                    </div>
+                    <button id="loginButton" class="primary-btn">Login</button>
+                </div>
+                <div id="adminControls" style="display: none;">
+                    <div class="admin-section">
+                        <h3><i class="fas fa-cogs"></i> API Configuration</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="apiKeyInput">WorkWave API Key</label>
+                                <input type="password" id="apiKeyInput" placeholder="Enter API Key">
+                            </div>
+                            <div class="input-group">
+                                <label for="territoryIdInput">Territory ID</label>
+                                <input type="text" id="territoryIdInput" placeholder="Enter Territory ID">
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button id="importEnvFile" class="action-btn"><i class="fas fa-file-upload"></i> Import .env File</button>
+                            <button id="saveApiConfig" class="save-btn"><i class="fas fa-save"></i> Save API Config</button>
+                        </div>
+                        <input type="file" id="envFileInput" style="display: none;" accept=".env">
+                    </div>
+                    <div class="admin-section">
+                        <h3><i class="fas fa-draw-polygon"></i> Zone Editor</h3>
+                        <button id="drawZoneButton" class="action-btn admin-only"><i class="fas fa-plus"></i> Draw New Zone</button>
+                        <div id="zoneProperties" style="display: none;">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="zoneName">Zone Name</label>
+                                    <input type="text" id="zoneName" placeholder="Zone Name">
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneDay">Day</label>
+                                    <select id="zoneDay">
+                                        <option value="Sunday">Sunday</option>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Tuesday">Tuesday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Thursday">Thursday</option>
+                                        <option value="Friday">Friday</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneDriver">Driver</label>
+                                    <input type="text" id="zoneDriver" placeholder="Driver Name">
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneDeliveries">Deliveries</label>
+                                    <input type="number" id="zoneDeliveries" placeholder="# of Deliveries">
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneCapacity">Route Capacity</label>
+                                    <input type="number" id="zoneCapacity" placeholder="Max Deliveries">
+                                </div>
+                                <div class="input-group">
+                                    <label for="zoneVan">Van Number</label>
+                                    <input type="text" id="zoneVan" placeholder="e.g., VAN-01">
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="zoneRestricted">
+                                    <label for="zoneRestricted">Restricted Zone</label>
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <button id="saveZoneButton" class="save-btn"><i class="fas fa-save"></i> Save Zone</button>
+                                <button id="cancelZoneButton" class="cancel-btn"><i class="fas fa-times"></i> Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-section">
+                        <h3><i class="fas fa-cogs"></i> API Configuration</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="apiKeyInput">WorkWave API Key</label>
+                                <input type="password" id="apiKeyInput" placeholder="Enter API Key">
+                            </div>
+                            <div class="input-group">
+                                <label for="territoryIdInput">Territory ID</label>
+                                <input type="text" id="territoryIdInput" placeholder="Enter Territory ID">
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button id="importEnvFile" class="action-btn"><i class="fas fa-file-upload"></i> Import .env File</button>
+                            <button id="saveApiConfig" class="save-btn"><i class="fas fa-save"></i> Save API Config</button>
+                        </div>
+                        <input type="file" id="envFileInput" style="display: none;" accept=".env">
+                    </div>
+                    <div class="admin-section">
+                        <h3><i class="fas fa-database"></i> Route Management</h3>
+                        <div class="button-group">
+                            <button id="exportRoutes" class="action-btn admin-only"><i class="fas fa-download"></i> Export Routes</button>
+                            <button id="importRoutes" class="action-btn admin-only"><i class="fas fa-upload"></i> Import Routes</button>
+                            <button id="importWorkwave" class="action-btn admin-only"><i class="fas fa-file-import"></i> Import WorkWave Orders</button>
+                                </div>
+                    <div class="admin-section">
+                        <h3><i class="fas fa-cogs"></i> API Configuration</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="apiKeyInput">WorkWave API Key</label>
+                                <input type="password" id="apiKeyInput" placeholder="Enter API Key">
+                            </div>
+                            <div class="input-group">
+                                <label for="territoryIdInput">Territory ID</label>
+                                <input type="text" id="territoryIdInput" placeholder="Enter Territory ID">
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button id="importEnvFile" class="action-btn"><i class="fas fa-file-upload"></i> Import .env File</button>
+                            <button id="saveApiConfig" class="save-btn"><i class="fas fa-save"></i> Save API Config</button>
+                        </div>
+                        <input type="file" id="envFileInput" style="display: none;" accept=".env">
+                    </div>
+                    <div class="admin-section">
+                        <h3><i class="fas fa-key"></i> Password Management</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" placeholder="Enter current password">
+                            </div>
+                            <div class="input-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" placeholder="Enter new password">
+                            </div>
+                            <div class="input-group">
+                                <label for="confirmPassword">Confirm Password</label>
+                                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button id="changePasswordBtn" class="action-btn"><i class="fas fa-save"></i> Change Password</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast notifications -->
+        <div id="toast-container"></div>
+\n        <!-- Route Management Panel -->\
+        <div id="routeManagementPanel" class="modal" style="display: none;">\
+            <div class="modal-content animate__animated">\
+                <div class="modal-header">\
+                    <h2><i class="fas fa-route"></i> Edit Route</h2>\
+                    <span class="close" id="closeRoutePanel">&times;</span>\
+                </div>\
+                <div class="route-form">\
+                    <div class="form-grid">\
+                        <div class="input-group">\
+                            <label for="routeDay">Day</label>\
+                            <select id="routeDay">\
+                                <option value="Sunday">Sunday</option>\
+                                <option value="Monday">Monday</option>\
+                                <option value="Tuesday">Tuesday</option>\
+                                <option value="Wednesday">Wednesday</option>\
+                                <option value="Thursday">Thursday</option>\
+                                <option value="Friday">Friday</option>\
+                            </select>\
+                        </div>\
+                        <div class="input-group">\
+                            <label for="routeVan">Van Number</label>\
+                            <select id="routeVan"></select>\
+                        </div>\
+                        <div class="input-group">\
+                            <label for="routeName">Route Name</label>\
+                            <input type="text" id="routeName" placeholder="Route Name">\
+                        </div>\
+                        <div class="input-group">\
+                            <label for="routeDriver">Driver</label>\
+                            <input type="text" id="routeDriver" placeholder="Driver Name">\
+                        </div>\
+                        <div class="input-group">\
+                            <label for="routeDeliveries">Current Deliveries</label>\
+                            <input type="number" id="routeDeliveries" placeholder="# of Deliveries">\
+                        </div>\
+                        <div class="input-group">\
+                            <label for="routeCapacity">Route Capacity</label>\
+                            <input type="number" id="routeCapacity" placeholder="Max Deliveries">\
+                        </div>\
+                    </div>\
+                    <div class="button-group">\
+                        <button id="saveRouteEdit" class="save-btn"><i class="fas fa-save"></i> Save Changes</button>\
+                        <button id="cancelRouteEdit" class="cancel-btn"><i class="fas fa-times"></i> Cancel</button>\
+                    </div>\
+                </div>\
+            </div>\
+        </div>
+    </div>
+
+    <!-- All scripts at the end of the body in correct order -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.1/mapbox-gl-draw.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="config.js"></script>
+    <script src="routes.js"></script>
+    <script src="mapbox.js"></script>
+    <script src="van_overlay.js"></script>
+    <script src="user_interface.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.MealMap && typeof window.MealMap.initMap === 'function') {
+                window.MealMap.initMap();
+                // Initialize user interface enhancements
+                if (typeof window.MealMap.initUserInterface === "function") {
+                    window.MealMap.initUserInterface();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

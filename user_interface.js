@@ -597,7 +597,7 @@ function initApiConfiguration() {
     const apiConfig = localStorage.getItem('apiConfig');
     if (apiConfig) {
         try {
-            const config = JSON.parse(apiConfig);
+            const config = typeof decryptData === "function" ? decryptData(apiConfig) : JSON.parse(apiConfig);
             if (apiKeyInput) apiKeyInput.value = config.apiKey || '';
             if (territoryIdInput) territoryIdInput.value = config.territoryId || '';
         } catch (err) {
@@ -634,7 +634,7 @@ function initApiConfiguration() {
         
         try {
             const config = { apiKey, territoryId };
-            localStorage.setItem('apiConfig', JSON.stringify(config));
+            localStorage.setItem('apiConfig', encryptData(config));
             showToast('API configuration saved successfully', 'success');
         } catch (err) {
             console.error('Failed to save API configuration:', err);
