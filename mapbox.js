@@ -175,7 +175,8 @@ function setupEventListeners() {
     });
 
     if (loginButton && passwordInput) {
-        loginButton.addEventListener('click', () => {
+        // Function to handle login
+        const handleLogin = () => {
             const pw = passwordInput.value.trim();
             const storedPassword = localStorage.getItem('adminPassword');
             
@@ -195,6 +196,17 @@ function setupEventListeners() {
                 showModeIndicator('Admin Mode', true);
             } else {
                 alert('Incorrect password');
+            }
+        };
+        
+        // Add click event listener to login button
+        loginButton.addEventListener('click', handleLogin);
+        
+        // Add keypress event listener to password input for Enter key
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission
+                handleLogin();
             }
         });
     }
