@@ -25,14 +25,17 @@ function initUserInterface() {
         initWalkthrough();
     }
     
-    // Initialize FAQ section
+    // Initialize FAQ section (but don't show it automatically)
     initFAQ();
     
     // Set initial mode
     setUserMode(userInterface.isUserMode);
     
-    // Add help button to header controls
+    // Add FAQ button to the left side
     addHelpButton();
+    
+    // Initialize password management
+    initPasswordManagement();
 }
 
 // Load user preferences from localStorage
@@ -204,23 +207,25 @@ function enhancedSearchAddress() {
         });
 }
 
-// Add help button to header controls
+// Add FAQ button to the left side near map name
 function addHelpButton() {
-    const controlsDiv = document.querySelector('.controls');
-    if (!controlsDiv) return;
+    // Create FAQ button in the title wrapper instead of controls
+    const titleWrapper = document.querySelector('.title-wrapper');
+    if (!titleWrapper) return;
     
-    const helpButton = document.createElement('button');
-    helpButton.id = 'helpButton';
-    helpButton.className = 'animated-btn';
-    helpButton.title = 'Help & FAQ';
-    helpButton.innerHTML = '<i class="fas fa-question"></i>';
+    const faqButton = document.createElement('button');
+    faqButton.id = 'faqButton';
+    faqButton.className = 'faq-btn';
+    faqButton.title = 'Frequently Asked Questions';
+    faqButton.textContent = 'FAQ';
     
-    helpButton.addEventListener('click', toggleHelpResources);
+    faqButton.addEventListener('click', toggleHelpResources);
     
-    controlsDiv.appendChild(helpButton);
+    // Add the button after the subtitle
+    titleWrapper.appendChild(faqButton);
 }
 
-// Toggle help resources (walkthrough and FAQ)
+// Toggle help resources (FAQ only)
 function toggleHelpResources() {
     const faqSection = document.getElementById('faqSection');
     
@@ -231,11 +236,9 @@ function toggleHelpResources() {
         // Show FAQ
         faqSection.style.display = '';
     } else {
-        // Neither is visible, start walkthrough
-        userInterface.walkthroughDismissed = false;
-        userInterface.walkthroughStep = 0;
-        initWalkthrough();
-        saveUserPreferences();
+        // Create FAQ if it doesn't exist
+        createFAQSection();
+        document.getElementById('faqSection').style.display = '';
     }
 }
 
@@ -529,9 +532,92 @@ function createFAQSection() {
     faqSection.style.display = 'none';
 }
 
+// Password management functionality
+function initPasswordManagement() {
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    if (!changePasswordBtn) return;
+    
+    changePasswordBtn.addEventListener('click', changeAdminPassword);
+}
+
+// Change admin password
+function changeAdminPassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validate inputs
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showToast('Please fill in all password fields', 'error');
+        return;
+    }
+    
+    // Check if current password is correct
+    if (currentPassword !== 'angel2025') {
+        showToast('Current password is incorrect', 'error');
+        return;
+    }
+    
+    // Check if new passwords match
+    if (newPassword !== confirmPassword) {
+        showToast('New passwords do not match', 'error');
+        return;
+    }
+    
+    // Check password strength
+    if (newPassword.length < 8) {
+        showToast('New password must be at least 8 characters long', 'error');
+        return;
+    }
+    
+    // Store new password in localStorage
+    try {
+        localStorage.setItem('adminPassword', newPassword);
+        showToast('Password changed successfully', 'success');
+        
+        // Clear password fields
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+    } catch (err) {
+        console.error('Failed to save new password:', err);
+        showToast('Failed to change password', 'error');
+    }
+}
+
+// Show toast notification
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Make the toast visible
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.pointerEvents = 'auto';
+    }, 10);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            toast.remove();
+        }, 500);
+    }, 3000);
+}
+
 // Add to window.MealMap object
 window.MealMap = window.MealMap || {};
 window.MealMap.initUserInterface = initUserInterface;
 window.MealMap.enhancedSearchAddress = enhancedSearchAddress;
 window.MealMap.setUserMode = setUserMode;
 window.MealMap.toggleHelpResources = toggleHelpResources;
+window.MealMap.initPasswordManagement = initPasswordManagement;

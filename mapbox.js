@@ -152,7 +152,10 @@ function setupEventListeners() {
     if (loginButton && passwordInput) {
         loginButton.addEventListener('click', () => {
             const pw = passwordInput.value.trim();
-            if (pw === 'angel2025') {
+            const storedPassword = localStorage.getItem('adminPassword');
+            
+            // Check against stored password or default password
+            if (pw === (storedPassword || 'angel2025')) {
                 loginSection.style.display = 'none';
                 controlsSection.style.display = 'block';
                 document.getElementById('adminControls').style.display = 'block';

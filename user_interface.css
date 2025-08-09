@@ -264,3 +264,22 @@
         font-size: 0.85rem;
     }
 }
+
+/* FAQ button */
+#faqButton {
+    background-color: var(--info-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+#faqButton:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
