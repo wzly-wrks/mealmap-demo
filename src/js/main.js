@@ -7,7 +7,6 @@
 // Import CSS
 import '../css/style.css';
 import '../css/user_interface.css';
-import '../css/admin-panel.css';
 
 // Import utility modules
 import './utils/html-sanitizer';
@@ -20,9 +19,6 @@ import './core/ui-manager';
 
 // Import feature modules
 import './features/route-manager';
-import './features/admin-panel';
-import './features/export-manager';
-import './features/import-manager';
 
 /**
  * Initialize the application when the DOM is fully loaded
@@ -63,11 +59,6 @@ function initApp() {
             // Initialize route manager
             if (window.MealMap.routeManager && typeof window.MealMap.routeManager.init === 'function') {
               window.MealMap.routeManager.init();
-            }
-            
-            // Initialize admin panel
-            if (window.MealMap.adminPanel && typeof window.MealMap.adminPanel.init === 'function') {
-              window.MealMap.adminPanel.init();
             }
             
             // Initialize UI manager
