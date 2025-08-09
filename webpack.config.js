@@ -11,8 +11,7 @@ module.exports = (env, argv) => {
   
   return {
     entry: {
-      main: './src/js/main.js',
-      admin: './src/js/admin.js'
+      main: './src/js/main.js'
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
