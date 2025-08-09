@@ -155,12 +155,46 @@ function setupEventListeners() {
             if (pw === 'angel2025') {
                 loginSection.style.display = 'none';
                 controlsSection.style.display = 'block';
-        document.getElementById('adminControls').style.display = 'block';
+                document.getElementById('adminControls').style.display = 'block';
                 passwordInput.value = '';
+                
+                // Set admin mode if user interface is initialized
+                if (window.MealMap && typeof window.MealMap.setUserMode === 'function') {
+                    window.MealMap.setUserMode(false); // false = admin mode
+                }
+                
+                // Show admin mode indicator
+                showModeIndicator('Admin Mode', true);
             } else {
                 alert('Incorrect password');
             }
         });
+    }
+    
+    // Function to show mode indicator
+    function showModeIndicator(text, isAdmin) {
+        let indicator = document.getElementById('modeIndicator');
+        
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'modeIndicator';
+            indicator.className = 'mode-indicator';
+            document.body.appendChild(indicator);
+        }
+        
+        indicator.textContent = text;
+        indicator.className = isAdmin ? 'mode-indicator admin-mode' : 'mode-indicator';
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            indicator.style.opacity = '0';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 500);
+        }, 5000);
+        
+        indicator.style.display = 'flex';
+        indicator.style.opacity = '0.8';
     }
 
     // Zone editing controls
@@ -384,6 +418,13 @@ async function loadRoutes() {
 }
 
 async function searchAddress() {
+    // Use enhanced search if available
+    if (window.MealMap && typeof window.MealMap.enhancedSearchAddress === 'function') {
+        window.MealMap.enhancedSearchAddress();
+        return;
+    }
+    
+    // Fall back to original search if enhanced search is not available
     const address = document.getElementById('addressSearch').value;
     const resultDiv = document.getElementById('searchResult');
     if (!address) {
