@@ -249,4 +249,4 @@ If you discover a security vulnerability, please send an email to security@ninja
 ---
 
 © 2025 weezly.works | Project Angel Food
-Created with ❤️ in ~/Los_Angeles by wzly-wrks
+<br>Created with ❤️ in ~/Los_Angeles by wzly-wrks
