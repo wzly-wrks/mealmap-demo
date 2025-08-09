@@ -533,7 +533,7 @@ function createFAQSection() {
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="faq-answer">
-                    <p>Click the help button (question mark icon) in the top-right corner of the screen to start the walkthrough guide again.</p>
+                    <p>Click the "FAQ" button near the map name in the header to open this FAQ section. Administrators can also reset the walkthrough from the Admin Panel under the Help section.</p>
                 </div>
             </div>
         </div>
@@ -576,6 +576,11 @@ function initPasswordManagement() {
     
     // Initialize API configuration
     initApiConfiguration();
+    
+    // Initialize admin panel navigation
+    if (window.MealMap && typeof window.MealMap.initAdminPanelNavigation === 'function') {
+        window.MealMap.initAdminPanelNavigation();
+    }
 }
 
 // Initialize API configuration

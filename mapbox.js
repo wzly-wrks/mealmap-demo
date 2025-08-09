@@ -145,6 +145,16 @@ function setupEventListeners() {
 
     if (adminBtn && adminModal) {
         adminBtn.addEventListener('click', () => {
+            // If already in admin mode, toggle back to user mode
+            if (!userInterface.isUserMode) {
+                if (window.MealMap && typeof window.MealMap.setUserMode === 'function') {
+                    window.MealMap.setUserMode(true);
+                    showModeIndicator('Switched to View-Only Mode', false);
+                }
+                return;
+            }
+            
+            // Otherwise show admin login modal
             adminModal.style.display = 'block';
             adminModal.classList.add('animate__fadeInDown');
         });
@@ -334,6 +344,28 @@ function importWorkwaveOrders() {
     loadingIndicator.style.zIndex = '9999';
     document.body.appendChild(loadingIndicator);
     
+    // Get API credentials from localStorage
+    let apiKey = '';
+    let territoryId = '';
+    try {
+        const apiConfig = JSON.parse(localStorage.getItem('apiConfig')) || {};
+        apiKey = apiConfig.apiKey || '';
+        territoryId = apiConfig.territoryId || '';
+    } catch (err) {
+        console.error('Failed to load API configuration:', err);
+    }
+    
+    // Check if API credentials are available
+    if (!apiKey || !territoryId) {
+        loadingIndicator.remove();
+        if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+            window.MealMap.showToast('API credentials not found. Please configure them in the Admin Panel.', 'error');
+        } else {
+            alert('API credentials not found. Please configure them in the Admin Panel.');
+        }
+        return;
+    }
+    
     // Ask user which data source to use
     const dataSource = confirm(
         "Import from WorkWave Route Manager:\n\n" +
@@ -352,16 +384,23 @@ function importWorkwaveOrders() {
         dateStr = prompt('Enter date (YYYY-MM-DD) or leave blank for today:', today);
         const date = dateStr || today;
         
-        apiEndpoint = `http://localhost:3003/api/workwave/orders?date=${date}`;
+        apiEndpoint = `/api/workwave/orders?date=${date}`;
         loadingIndicator.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Importing orders for ${date}...`;
     } else {
         // Use current routes endpoint
-        apiEndpoint = 'http://localhost:3003/api/workwave/current-orders';
+        apiEndpoint = '/api/workwave/current-orders';
         loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing today\'s routes...';
     }
     
+    // Create headers with API credentials
+    const headers = {
+        'X-WorkWave-Key': apiKey,
+        'X-Territory-ID': territoryId,
+        'Content-Type': 'application/json'
+    };
+    
     // Fetch orders from our server API
-    fetch(apiEndpoint)
+    fetch(apiEndpoint, { headers })
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Server returned ${response.status}: ${response.statusText}`);
@@ -384,7 +423,11 @@ function importWorkwaveOrders() {
             if (globals.orders.length === 0) {
                 // No orders found
                 const dateInfo = dataSource === "planned" && dateStr ? ` for ${dateStr}` : '';
-                alert(`No orders found${dateInfo}. ${data.message || ''}`);
+                if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+                    window.MealMap.showToast(`No orders found${dateInfo}. ${data.message || ''}`, 'info');
+                } else {
+                    alert(`No orders found${dateInfo}. ${data.message || ''}`);
+                }
             } else {
                 // Display the orders on the map
                 displayOrders();
@@ -392,12 +435,20 @@ function importWorkwaveOrders() {
                 // Show success message
                 const source = dataSource === "planned" ? "planned routes" : "today's routes";
                 const routeCount = new Set(globals.orders.map(o => o.route)).size;
-                alert(`Successfully imported ${globals.orders.length} orders from ${routeCount} ${source}`);
+                if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+                    window.MealMap.showToast(`Successfully imported ${globals.orders.length} orders from ${routeCount} ${source}`, 'success');
+                } else {
+                    alert(`Successfully imported ${globals.orders.length} orders from ${routeCount} ${source}`);
+                }
             }
         })
         .catch(err => {
             console.error('Failed to import WorkWave orders:', err);
-            alert(`Failed to import WorkWave orders: ${err.message}\n\nPlease check your API credentials and try again.`);
+            if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+                window.MealMap.showToast(`Failed to import WorkWave orders: ${err.message}. Please check your API credentials.`, 'error');
+            } else {
+                alert(`Failed to import WorkWave orders: ${err.message}\n\nPlease check your API credentials and try again.`);
+            }
         })
         .finally(() => {
             // Remove loading indicator
