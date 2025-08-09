@@ -1,8 +1,8 @@
 /* global React, ReactDOM */
 
-function DaySelector() {
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
+function DaySelector() {
     return React.createElement(
         React.Fragment,
         null,
