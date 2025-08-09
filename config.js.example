@@ -1,0 +1,13 @@
+// Configuration template for MealMap
+// Copy this file to config.js and set your environment variables.
+// Uses dotenv to load variables from a .env file.
+
+const dotenv = require('dotenv');
+dotenv.config();
+
+// Mapbox access token for frontend scripts
+window.MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || '';
+
+// Additional environment variables can be exported as needed
+// example:
+// window.API_KEY = process.env.API_KEY || '';
