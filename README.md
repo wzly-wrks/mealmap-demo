@@ -1,15 +1,3 @@
-<p align="center">
-<pre>
-                     ██╗    ██╗███████╗██╗  ██╗   ██╗██╗    ██╗██████╗ ██╗  ██╗███████╗
-                     ██║    ██║╚══███╔╝██║  ╚██╗ ██╔╝██║    ██║██╔══██╗██║ ██╔╝██╔════╝
-                     ██║ █╗ ██║  ███╔╝ ██║   ╚████╔╝ ██║ █╗ ██║███████╔╝█████╔╝ █████╗  
-                     ██║███╗██║ ███╔╝  ██║    ╚██╔╝  ██║███╗██║██╔══██╗██╔═██╗ ╚════██╗
-                     ╚████╔████╔╝███████╗██████████╗╚████╔████╔╝██║  ██╗██║  ██╗███████║
-                      ╚═══╝╚═══╝ ╚══════╝╚═══════╝ ╚═══╝╚═══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
-                                                wzly.wrks
-</pre>
-</p>
-
 # Meal Map Demo
 
 A custom web app for managing delivery routes across LA County for Project Angel Food. The map implementation relies on **Mapbox GL JS** instead of Google Maps.
