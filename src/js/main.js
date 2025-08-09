@@ -19,6 +19,7 @@ import './core/ui-manager';
 
 // Import feature modules
 import './features/route-manager';
+import './react/day-selector';
 
 /**
  * Initialize the application when the DOM is fully loaded
