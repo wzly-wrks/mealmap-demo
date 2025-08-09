@@ -1,18 +1,22 @@
 {
   "name": "mealmap-demo",
   "version": "1.0.0",
-  "description": "<p align=\"center\"> <pre>                      ██╗    ██╗███████╗██╗  ██╗   ██╗██╗    ██╗██████╗ ██╗  ██╗███████╗                      ██║    ██║╚══███╔╝██║  ╚██╗ ██╔╝██║    ██║██╔══██╗██║ ██╔╝██╔════╝                      ██║ █╗ ██║  ███╔╝ ██║   ╚████╔╝ ██║ █╗ ██║██████╔╝█████╔╝ ███████╗                      ██║███╗██║ ███╔╝  ██║    ╚██╔╝  ██║███╗██║██╔══██╗██╔═██╗ ╚════██║                      ╚███╔███╔╝███████╗███████╗██║██╗╚███╔███╔╝██║  ██║██║  ██╗███████║                       ╚══╝╚══╝ ╚══════╝╚══════╝╚═╝╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝                                                 wzly.wrks </pre> </p>",
-  "main": "config.js",
+  "description": "Meal Map Demo for Project Angel Food",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo &quot;Error: no test specified&quot; && exit 1",
     "start": "node server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wzly-wrks/mealmap-demo.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "map",
+    "delivery",
+    "routes"
+  ],
+  "author": "NinjaTech AI",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/wzly-wrks/mealmap-demo/issues"
