@@ -10,8 +10,8 @@
     "dev:server": "nodemon server/server.js",
     "dev:client": "webpack serve --mode development",
     "build": "webpack --mode production",
-    "lint": "eslint src/**/*.js server/**/*.js",
-    "lint:fix": "eslint src/**/*.js server/**/*.js --fix"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "repository": {
     "type": "git",
