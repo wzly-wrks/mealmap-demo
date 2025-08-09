@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meal Map - Project Angel Food</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="user_interface.css">
-    <link rel="stylesheet" href="admin-panel.css">
+    <link rel="stylesheet" href="src/css/style.css">
+    <link rel="stylesheet" href="src/css/user_interface.css">
+    <link rel="stylesheet" href="src/css/admin-panel.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
@@ -18,295 +18,200 @@
     <div id="loading-screen">
         <div class="loader-container">
             <div class="logo-loader">
-                <img src="paf-logo.png" alt="Project Angel Food Logo" id="logo-loader">
-                <div class="loading-spinner"></div>
+                <img src="assets/paf-logo.png" alt="Project Angel Food Logo" class="logo-image">
             </div>
-            <h2>Loading Meal Map</h2>
+            <div class="loading-text">Loading Meal Map...</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
         </div>
     </div>
 
-    <div class="app-container">
+    <!-- Main container -->
+    <div id="app-container" style="display: none;">
+        <!-- Header -->
         <header>
-            <div class="logo-container">
-                <div class="logo-wrapper">
-                    <img src="paf-logo.png" alt="Project Angel Food Logo" class="paf-logo">
-                </div>
-                <div class="title-wrapper">
-                    <h1>Meal Map</h1>
-                    <span class="subtitle">LA County Delivery Routes</span>
-                </div>
+            <div class="logo">
+                <img src="assets/paf-logo.png" alt="Project Angel Food Logo" class="logo-image">
+                <h1>Meal Map</h1>
             </div>
             <div class="controls">
-                <button id="darkModeToggle" class="animated-btn" title="Toggle Dark Mode">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <button id="adminPanelButton" class="animated-btn" title="Admin Panel">
-                <button id="exitAdminModeButton" class="animated-btn admin-only" title="Exit Edit Mode" style="display: none;">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
+                <div class="day-selector">
+                    <label for="daySelect">Day:</label>
+                    <select id="daySelect">
+                        <option value="monday">Monday</option>
+                        <option value="tuesday">Tuesday</option>
+                        <option value="wednesday">Wednesday</option>
+                        <option value="thursday">Thursday</option>
+                        <option value="friday">Friday</option>
+                        <option value="saturday">Saturday</option>
+                        <option value="sunday">Sunday</option>
+                    </select>
+                </div>
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-icon light"><i class="fas fa-sun"></i></span>
+                        <span class="toggle-icon dark"><i class="fas fa-moon"></i></span>
+                    </label>
+                </div>
+                <button id="adminButton" class="icon-button" title="Admin Panel">
                     <i class="fas fa-lock"></i>
+                </button>
+                <button id="helpButton" class="icon-button" title="Help">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+                <button id="faqButton" class="icon-button" title="FAQ">
+                    <i class="fas fa-info-circle"></i>
                 </button>
             </div>
         </header>
 
-        <div class="main-content">
-            <div class="sidebar">
-                <div class="day-selector panel">
-                    <h3><i class="fas fa-calendar-day"></i> Select Day</h3>
-                    <div class="day-buttons">
-                        <button data-day="Sunday">Sunday</button>
-                        <button data-day="Monday">Monday</button>
-                        <button data-day="Tuesday">Tuesday</button>
-                        <button data-day="Wednesday">Wednesday</button>
-                        <button data-day="Thursday">Thursday</button>
-                        <button data-day="Friday">Friday</button>
+        <!-- Main content -->
+        <main>
+            <div id="map"></div>
+            <div id="sidebar">
+                <div class="sidebar-section">
+                    <h3>Zone Information</h3>
+                    <div id="zoneInfo">
+                        <p>Click on a zone to see details</p>
                     </div>
                 </div>
-
-                <div class="search-container panel">
-                    <h3><i class="fas fa-search"></i> Address Search</h3>
-                    <div class="search-input-group">
-                        <input type="text" id="addressSearch" placeholder="Enter an address">
-                        <button id="searchButton" class="pulse">
-                            <i class="fas fa-search"></i>
-                        </button>
+                <div class="sidebar-section">
+                    <h3>Address Search</h3>
+                    <div class="search-container">
+                        <input type="text" id="addressSearch" placeholder="Enter an address...">
+                        <button id="searchButton"><i class="fas fa-search"></i></button>
                     </div>
-                    <div id="searchResult"></div>
-                </div>
-
-                <div class="route-list panel">
-                    <h3><i class="fas fa-route"></i> Routes <span id="routeCount"></span></h3>
-                    <ul id="routesList"></ul>
+                    <div id="searchResults"></div>
                 </div>
             </div>
+        </main>
 
-            <div class="map-container">
-                <div id="map"></div>
-                <div class="map-overlay">
-                    <div class="logo-watermark">
-                        <img src="paf-logo.png" alt="Project Angel Food" class="watermark">
-                    </div>
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <p>&copy; 2025 Project Angel Food | Meal Map v1.0</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Walkthrough overlay -->
+    <div id="walkthrough-overlay" class="hidden">
+        <div class="walkthrough-container">
+            <div class="walkthrough-header">
+                <h2>Welcome to Meal Map!</h2>
+                <button id="closeWalkthrough" class="close-button">&times;</button>
+            </div>
+            <div class="walkthrough-content">
+                <div class="walkthrough-step" data-step="1">
+                    <h3>Getting Started</h3>
+                    <p>This interactive map helps you manage delivery routes across LA County.</p>
+                    <img src="https://placehold.co/600x400?text=Map+Overview" alt="Map Overview">
                 </div>
+                <div class="walkthrough-step hidden" data-step="2">
+                    <h3>Day Selection</h3>
+                    <p>Use the day selector to view routes for specific days of the week.</p>
+                    <img src="https://placehold.co/600x400?text=Day+Selection" alt="Day Selection">
+                </div>
+                <div class="walkthrough-step hidden" data-step="3">
+                    <h3>Zone Information</h3>
+                    <p>Click on any zone to view detailed information about it.</p>
+                    <img src="https://placehold.co/600x400?text=Zone+Information" alt="Zone Information">
+                </div>
+                <div class="walkthrough-step hidden" data-step="4">
+                    <h3>Address Search</h3>
+                    <p>Search for addresses to find which zone they belong to.</p>
+                    <img src="https://placehold.co/600x400?text=Address+Search" alt="Address Search">
+                </div>
+                <div class="walkthrough-step hidden" data-step="5">
+                    <h3>Admin Features</h3>
+                    <p>Administrators can edit zones, manage routes, and configure API settings.</p>
+                    <img src="https://placehold.co/600x400?text=Admin+Features" alt="Admin Features">
+                </div>
+            </div>
+            <div class="walkthrough-navigation">
+                <button id="prevStep" disabled>Previous</button>
+                <div class="walkthrough-dots">
+                    <span class="dot active" data-step="1"></span>
+                    <span class="dot" data-step="2"></span>
+                    <span class="dot" data-step="3"></span>
+                    <span class="dot" data-step="4"></span>
+                    <span class="dot" data-step="5"></span>
+                </div>
+                <button id="nextStep">Next</button>
             </div>
         </div>
+    </div>
 
-        <!-- Admin Panel Modal -->
-<!-- Admin Panel Modal -->
-<div id="adminPanel" class="modal">
-    <div class="modal-content animate__animated">
-        <div class="modal-header">
-            <h2><i class="fas fa-lock"></i> Admin Panel</h2>
-            <span class="close">&times;</span>
-        </div>
-        <div id="adminLogin">
-            <div class="input-group">
-                <label for="adminPassword">Admin Password</label>
-                <input type="password" id="adminPassword" placeholder="Enter password">
+    <!-- FAQ Modal -->
+    <div id="faqModal" class="modal">
+        <div class="modal-content animate__animated">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Frequently Asked Questions</h2>
+                <span class="close">&times;</span>
             </div>
-            <button id="loginButton" class="primary-btn">Login</button>
-        </div>
-        <div id="adminControls" style="display: none;">
-            <!-- Admin Navigation -->
-            <div class="admin-nav">
-                <button id="navApiConfig" class="admin-nav-btn active"><i class="fas fa-cogs"></i> API Config</button>
-                <button id="navZoneEditor" class="admin-nav-btn"><i class="fas fa-draw-polygon"></i> Zone Editor</button>
-                <button id="navRouteManagement" class="admin-nav-btn"><i class="fas fa-database"></i> Routes</button>
-                <button id="navPassword" class="admin-nav-btn"><i class="fas fa-key"></i> Password</button>
-                <button id="navWalkthrough" class="admin-nav-btn"><i class="fas fa-question-circle"></i> Help</button>
-            </div>
-            
-            <!-- API Configuration Section -->
-            <div id="apiConfigSection" class="admin-content-section">
-                <h3><i class="fas fa-cogs"></i> API Configuration</h3>
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label for="apiKeyInput">WorkWave API Key</label>
-                        <input type="password" id="apiKeyInput" placeholder="Enter API Key">
-                    </div>
-                    <div class="input-group">
-                        <label for="territoryIdInput">Territory ID</label>
-                        <input type="text" id="territoryIdInput" placeholder="Enter Territory ID">
-                    </div>
+            <div class="modal-body">
+                <div class="faq-item">
+                    <h3>What is Meal Map?</h3>
+                    <p>Meal Map is a custom web application designed for Project Angel Food to manage delivery routes across LA County. It helps visualize and organize delivery zones by day of the week.</p>
                 </div>
-                <div class="button-group">
-                    <button id="importEnvFile" class="action-btn"><i class="fas fa-file-upload"></i> Import .env File</button>
-                    <button id="saveApiConfig" class="save-btn"><i class="fas fa-save"></i> Save API Config</button>
+                <div class="faq-item">
+                    <h3>How do I search for an address?</h3>
+                    <p>Use the address search box in the sidebar. Enter an address and click the search button. The map will show you which zone the address belongs to.</p>
                 </div>
-                <input type="file" id="envFileInput" style="display: none;" accept=".env">
-            </div>
-            
-            <!-- Zone Editor Section -->
-            <div id="zoneEditorSection" class="admin-content-section" style="display: none;">
-                <h3><i class="fas fa-draw-polygon"></i> Zone Editor</h3>
-                <button id="drawZoneButton" class="action-btn"><i class="fas fa-plus"></i> Draw New Zone</button>
-                <div id="zoneProperties" style="display: none;">
-                    <div class="form-grid">
-                        <div class="input-group">
-                            <label for="zoneName">Zone Name</label>
-                            <input type="text" id="zoneName" placeholder="Zone Name">
-                        </div>
-                        <div class="input-group">
-                            <label for="zoneDay">Day</label>
-                            <select id="zoneDay">
-                                <option value="Sunday">Sunday</option>
-                                <option value="Monday">Monday</option>
-                                <option value="Tuesday">Tuesday</option>
-                                <option value="Wednesday">Wednesday</option>
-                                <option value="Thursday">Thursday</option>
-                                <option value="Friday">Friday</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="zoneDriver">Driver</label>
-                            <input type="text" id="zoneDriver" placeholder="Driver Name">
-                        </div>
-                        <div class="input-group">
-                            <label for="zoneDeliveries">Deliveries</label>
-                            <input type="number" id="zoneDeliveries" placeholder="# of Deliveries">
-                        </div>
-                        <div class="input-group">
-                            <label for="zoneCapacity">Route Capacity</label>
-                            <input type="number" id="zoneCapacity" placeholder="Max Deliveries">
-                        </div>
-                        <div class="input-group">
-                            <label for="zoneVan">Van Number</label>
-                            <input type="text" id="zoneVan" placeholder="e.g., VAN-01">
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="zoneRestricted">
-                            <label for="zoneRestricted">Restricted Zone</label>
-                        </div>
-                    </div>
-                    <div class="button-group">
-                        <button id="saveZoneButton" class="save-btn"><i class="fas fa-save"></i> Save Zone</button>
-                        <button id="cancelZoneButton" class="cancel-btn"><i class="fas fa-times"></i> Cancel</button>
-                    </div>
+                <div class="faq-item">
+                    <h3>What do the different colors mean?</h3>
+                    <p>Each delivery zone is color-coded based on the day of the week. Restricted zones are shown in gray.</p>
                 </div>
-            </div>
-            
-            <!-- Route Management Section -->
-            <div id="routeManagementSection" class="admin-content-section" style="display: none;">
-                <h3><i class="fas fa-database"></i> Route Management</h3>
-                <div class="button-group">
-                    <button id="exportRoutes" class="action-btn"><i class="fas fa-download"></i> Export Routes</button>
-                    <button id="importRoutes" class="action-btn"><i class="fas fa-upload"></i> Import Routes</button>
-                    <button id="importWorkwave" class="action-btn"><i class="fas fa-file-import"></i> Import WorkWave Orders</button>
+                <div class="faq-item">
+                    <h3>How do I edit zones?</h3>
+                    <p>Zone editing is available in the Admin Panel. Click the lock icon, enter your admin password, and use the Zone Editor tab.</p>
                 </div>
-            </div>
-            
-            <!-- Password Management Section -->
-            <div id="passwordSection" class="admin-content-section" style="display: none;">
-                <h3><i class="fas fa-key"></i> Password Management</h3>
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label for="currentPassword">Current Password</label>
-                        <input type="password" id="currentPassword" placeholder="Enter current password">
-                    </div>
-                    <div class="input-group">
-                        <label for="newPassword">New Password</label>
-                        <input type="password" id="newPassword" placeholder="Enter new password">
-                    </div>
-                    <div class="input-group">
-                        <label for="confirmPassword">Confirm Password</label>
-                        <input type="password" id="confirmPassword" placeholder="Confirm new password">
-                    </div>
+                <div class="faq-item">
+                    <h3>Can I see delivery routes?</h3>
+                    <p>Yes, delivery routes are displayed as colored overlays on the map. Select a day to see the routes for that day.</p>
                 </div>
-                <div class="button-group">
-                    <button id="changePasswordBtn" class="action-btn"><i class="fas fa-save"></i> Change Password</button>
-                </div>
-            </div>
-            
-            <!-- Help & Walkthrough Section -->
-            <div id="walkthroughSection" class="admin-content-section" style="display: none;">
-                <h3><i class="fas fa-question-circle"></i> Help & Walkthrough</h3>
-                <div class="help-content">
-                    <p>Manage the application's help features and user guidance.</p>
-                    <div class="button-group">
-                        <button id="resetWalkthroughBtn" class="action-btn"><i class="fas fa-redo"></i> Reset Walkthrough</button>
-                        <button id="editFaqBtn" class="action-btn"><i class="fas fa-edit"></i> Edit FAQ Content</button>
-                    </div>
+                <div class="faq-item">
+                    <h3>How do I reset the walkthrough?</h3>
+                    <p>You can reset the walkthrough from the Admin Panel under the "General Settings" section.</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>        <!-- Toast notifications -->
-        <div id="toast-container"></div>
-\n        <!-- Route Management Panel -->\
-        <div id="routeManagementPanel" class="modal" style="display: none;">\
-            <div class="modal-content animate__animated">\
-                <div class="modal-header">\
-                    <h2><i class="fas fa-route"></i> Edit Route</h2>\
-                    <span class="close" id="closeRoutePanel">&times;</span>\
-                </div>\
-                <div class="route-form">\
-                    <div class="form-grid">\
-                        <div class="input-group">\
-                            <label for="routeDay">Day</label>\
-                            <select id="routeDay">\
-                                <option value="Sunday">Sunday</option>\
-                                <option value="Monday">Monday</option>\
-                                <option value="Tuesday">Tuesday</option>\
-                                <option value="Wednesday">Wednesday</option>\
-                                <option value="Thursday">Thursday</option>\
-                                <option value="Friday">Friday</option>\
-                            </select>\
-                        </div>\
-                        <div class="input-group">\
-                            <label for="routeVan">Van Number</label>\
-                            <select id="routeVan"></select>\
-                        </div>\
-                        <div class="input-group">\
-                            <label for="routeName">Route Name</label>\
-                            <input type="text" id="routeName" placeholder="Route Name">\
-                        </div>\
-                        <div class="input-group">\
-                            <label for="routeDriver">Driver</label>\
-                            <input type="text" id="routeDriver" placeholder="Driver Name">\
-                        </div>\
-                        <div class="input-group">\
-                            <label for="routeDeliveries">Current Deliveries</label>\
-                            <input type="number" id="routeDeliveries" placeholder="# of Deliveries">\
-                        </div>\
-                        <div class="input-group">\
-                            <label for="routeCapacity">Route Capacity</label>\
-                            <input type="number" id="routeCapacity" placeholder="Max Deliveries">\
-                        </div>\
-                    </div>\
-                    <div class="button-group">\
-                        <button id="saveRouteEdit" class="save-btn"><i class="fas fa-save"></i> Save Changes</button>\
-                        <button id="cancelRouteEdit" class="cancel-btn"><i class="fas fa-times"></i> Cancel</button>\
-                    </div>\
-                </div>\
-            </div>\
-        </div>
-    </div>
 
-    <!-- All scripts at the end of the body in correct order -->
+    <!-- Include admin panel HTML -->
+    <div id="admin-panel-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>        <!-- Toast notifications -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.1/mapbox-gl-draw.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="config.js"></script>
-    <script src="routes.js"></script>
-    <script src="mapbox.js"></script>
-    <script src="van_overlay.js"></script>
-    <script src="user_interface.js"></script>
-    <script src="admin-panel.js"></script>
+    <script src="src/js/routes.js"></script>
+    <script src="src/js/mapbox.js"></script>
+    <script src="src/js/van_overlay.js"></script>
+    <script src="src/js/user_interface.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.MealMap && typeof window.MealMap.initMap === 'function') {
-                window.MealMap.initMap();
-                // Initialize user interface enhancements
-                if (typeof window.MealMap.initUserInterface === "function") {
-                    window.MealMap.initUserInterface();
-                }
-            }
+        // Load admin panel HTML
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('src/components/admin-panel.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('admin-panel-container').innerHTML = html;
+                    // Load admin panel script after HTML is loaded
+                    const script = document.createElement('script');
+                    script.src = 'src/components/admin-panel.js';
+                    document.body.appendChild(script);
+                });
         });
-    <script src="encryption-utils.js"></script>
-    <script src="admin-panel-fix.js"></script>
-    <script src="route-assignments.js"></script>
-    <script src="route-manager.js"></script>
     </script>
+    <script src="src/js/encryption-utils.js"></script>
+    <script src="src/components/admin-panel-fix.js"></script>
+    <script src="src/js/route-assignments.js"></script>
+    <script src="src/js/route-manager.js"></script>
 </body>
 </html>
