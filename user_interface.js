@@ -89,11 +89,20 @@ function setUserMode(isUserMode) {
     }
     
     // Hide draw controls in user mode
-    if (globals.draw) {
-        if (isUserMode) {
-            globals.map.removeControl(globals.draw);
-        } else if (!globals.map.hasControl(globals.draw)) {
-            globals.map.addControl(globals.draw);
+    if (globals.map && globals.draw) {
+        try {
+            // First try to remove the control if it exists
+            if (globals.map._controls) {
+                const hasDrawControl = globals.map._controls.some(control => control instanceof MapboxDraw);
+                
+                if (hasDrawControl && isUserMode) {
+                    globals.map.removeControl(globals.draw);
+                } else if (!hasDrawControl && !isUserMode) {
+                    globals.map.addControl(globals.draw);
+                }
+            }
+        } catch (err) {
+            console.error('Error toggling draw controls:', err);
         }
     }
     

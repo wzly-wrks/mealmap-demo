@@ -108,11 +108,26 @@ function setupEventListeners() {
 
     // Legacy search functionality
     const searchBtn = document.getElementById('searchButton');
-    if (searchBtn) searchBtn.addEventListener('click', searchAddress);
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            if (window.MealMap && typeof window.MealMap.enhancedSearchAddress === 'function') {
+                window.MealMap.enhancedSearchAddress();
+            } else {
+                searchAddress();
+            }
+        });
+    }
+    
     const searchInput = document.getElementById('addressSearch');
     if (searchInput) {
         searchInput.addEventListener('keypress', e => {
-            if (e.key === 'Enter') searchAddress();
+            if (e.key === 'Enter') {
+                if (window.MealMap && typeof window.MealMap.enhancedSearchAddress === 'function') {
+                    window.MealMap.enhancedSearchAddress();
+                } else {
+                    searchAddress();
+                }
+            }
         });
     }
 
