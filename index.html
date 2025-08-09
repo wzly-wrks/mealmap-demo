@@ -36,18 +36,7 @@
                 <h1>Meal Map</h1>
             </div>
             <div class="controls">
-                <div class="day-selector">
-                    <label for="daySelect">Day:</label>
-                    <select id="daySelect">
-                        <option value="monday">Monday</option>
-                        <option value="tuesday">Tuesday</option>
-                        <option value="wednesday">Wednesday</option>
-                        <option value="thursday">Thursday</option>
-                        <option value="friday">Friday</option>
-                        <option value="saturday">Saturday</option>
-                        <option value="sunday">Sunday</option>
-                    </select>
-                </div>
+                <div id="day-selector-root" class="day-selector"></div>
                 <div class="toggle-container">
                     <label class="toggle-switch">
                         <input type="checkbox" id="darkModeToggle">
@@ -190,6 +179,10 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.1/mapbox-gl-draw.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <!-- React dependencies -->
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="src/js/react/day-selector.js"></script>
     <script src="config.js"></script>
     <script src="src/js/routes.js"></script>
     <script src="src/js/mapbox.js"></script>
