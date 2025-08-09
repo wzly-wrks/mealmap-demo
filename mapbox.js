@@ -1,0 +1,659 @@
+
+// Mapbox based map implementation
+// Mapbox access token is provided via config.js as window.MAPBOX_TOKEN
+const MAPBOX_TOKEN = window.MAPBOX_TOKEN || '';
+
+const globals = {
+    map: null,
+    draw: null,
+    currentDay: 'Sunday',
+    currentRoutes: [],
+    routeLayers: [],
+    labelLayers: [],
+    orders: [],
+    orderMarkers: [],
+    routeColors: {},
+    colorPalette: ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#e67e22', '#1abc9c', '#2c3e50', '#ff69b4', '#7f8c8d'],
+    colorIndex: 0,
+    currentDrawId: null,
+    darkMode: false,
+    mapStyles: {
+        light: 'mapbox://styles/mapbox/streets-v11',
+        dark: 'mapbox://styles/mapbox/dark-v11'
+    }
+};
+
+async function initMap() {
+    if (!MAPBOX_TOKEN) {
+        console.error('Mapbox token missing. Did you forget to set it in config.js?');
+        alert('Mapbox token is missing. Please check config.js.');
+        return;
+    }
+
+    setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+        console.warn('Loading screen timed out after 8 seconds.');
+    }, 8000);
+
+    try {
+        mapboxgl.accessToken = MAPBOX_TOKEN;
+        globals.map = new mapboxgl.Map({
+            container: 'map',
+            style: globals.mapStyles.light,
+            center: [-118.2437, 34.0522],
+            zoom: 10
+        });
+
+        globals.map.on('load', () => {
+            document.getElementById('loading-screen').style.display = 'none';
+            console.log('Map has loaded, hiding loading screen.');
+        });
+
+        globals.map.addControl(new mapboxgl.NavigationControl());
+        globals.draw = new MapboxDraw({
+            displayControlsDefault: false,
+            controls: { polygon: true, trash: true }
+        });
+        globals.map.addControl(globals.draw);
+        globals.map.on('draw.create', handleDrawCreate);
+
+        globals.map.on('load', hideLoadingScreen);
+        globals.map.on('error', e => {
+            console.error('Mapbox error:', e.error);
+            hideLoadingScreen();
+        });
+
+        document.getElementById('adminControls').style.display = 'none';
+        setupEventListeners();
+        await loadRoutes();
+        displayRoutesByDay(globals.currentDay);
+    } catch (err) {
+        console.error('Error initializing map:', err);
+        hideLoadingScreen();
+    }
+}
+
+function setupEventListeners() {
+    // Initialize route names from Excel data
+    if (window.MealMap && window.MealMap.initializeRouteNames) {
+        window.MealMap.initializeRouteNames();
+    }
+    
+    // Initialize floating day selector
+    if (window.MealMap && window.MealMap.initializeFloatingDaySelector) {
+        window.MealMap.initializeFloatingDaySelector();
+    }
+    
+    const dayButtons = document.querySelectorAll('.day-buttons button');
+    dayButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            globals.currentDay = btn.getAttribute('data-day');
+            dayButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            displayRoutesByDay(globals.currentDay);
+            
+            // Update the new day selector
+            const daySelect = document.getElementById('daySelect');
+            if (daySelect) daySelect.value = globals.currentDay;
+            
+            // Create van overlays
+            if (window.MealMap && window.MealMap.createVanOverlays) {
+                window.MealMap.createVanOverlays();
+            }
+        });
+        if (btn.getAttribute('data-day') === globals.currentDay) {
+            btn.classList.add('active');
+        }
+    });
+
+    // Legacy search functionality
+    const searchBtn = document.getElementById('searchButton');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            if (window.MealMap && typeof window.MealMap.enhancedSearchAddress === 'function') {
+                window.MealMap.enhancedSearchAddress();
+            } else {
+                searchAddress();
+            }
+        });
+    }
+    
+    const searchInput = document.getElementById('addressSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                if (window.MealMap && typeof window.MealMap.enhancedSearchAddress === 'function') {
+                    window.MealMap.enhancedSearchAddress();
+                } else {
+                    searchAddress();
+                }
+            }
+        });
+    }
+
+    const darkToggle = document.getElementById('darkModeToggle');
+    if (darkToggle) darkToggle.addEventListener('click', toggleDarkMode);
+
+    // === Admin Panel Logic ===
+    const adminBtn = document.getElementById('adminPanelButton');
+    const adminModal = document.getElementById('adminPanel');
+    const closeBtn = adminModal?.querySelector('.close');
+    const loginSection = document.getElementById('adminLogin');
+    const controlsSection = document.getElementById('adminControls');
+    const loginButton = document.getElementById('loginButton');
+    const passwordInput = document.getElementById('adminPassword');
+
+    if (adminBtn && adminModal) {
+        adminBtn.addEventListener('click', () => {
+            // If already in admin mode, toggle back to user mode
+            if (!userInterface.isUserMode) {
+                if (window.MealMap && typeof window.MealMap.setUserMode === 'function') {
+                    window.MealMap.setUserMode(true);
+                    showModeIndicator('Switched to View-Only Mode', false);
+                }
+                return;
+            }
+            
+            // Otherwise show admin login modal
+            adminModal.style.display = 'block';
+            adminModal.classList.add('animate__fadeInDown');
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            adminModal.style.display = 'none';
+            adminModal.classList.remove('animate__fadeInDown');
+        });
+    }
+
+    window.addEventListener('click', e => {
+        if (e.target === adminModal) {
+            adminModal.style.display = 'none';
+            adminModal.classList.remove('animate__fadeInDown');
+        }
+    });
+
+    if (loginButton && passwordInput) {
+        // Function to handle login
+        const handleLogin = () => {
+            const pw = passwordInput.value.trim();
+            const storedPassword = localStorage.getItem('adminPassword');
+            
+            // Check against stored password or default password
+            if (pw === (storedPassword || 'angel2025')) {
+                loginSection.style.display = 'none';
+                controlsSection.style.display = 'block';
+                document.getElementById('adminControls').style.display = 'block';
+                passwordInput.value = '';
+                
+                // Set admin mode if user interface is initialized
+                if (window.MealMap && typeof window.MealMap.setUserMode === 'function') {
+                    window.MealMap.setUserMode(false); // false = admin mode
+                }
+                
+                // Show admin mode indicator
+                showModeIndicator('Admin Mode', true);
+            } else {
+                alert('Incorrect password');
+            }
+        };
+        
+        // Add click event listener to login button
+        loginButton.addEventListener('click', handleLogin);
+        
+        // Add keypress event listener to password input for Enter key
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission
+                handleLogin();
+            }
+        });
+    }
+    
+    // Function to show mode indicator
+    function showModeIndicator(text, isAdmin) {
+        let indicator = document.getElementById('modeIndicator');
+        
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'modeIndicator';
+            indicator.className = 'mode-indicator';
+            document.body.appendChild(indicator);
+        }
+        
+        indicator.textContent = text;
+        indicator.className = isAdmin ? 'mode-indicator admin-mode' : 'mode-indicator';
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            indicator.style.opacity = '0';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 500);
+        }, 5000);
+        
+        indicator.style.display = 'flex';
+        indicator.style.opacity = '0.8';
+    }
+
+    // Zone editing controls
+    const drawBtn = document.getElementById('drawZoneButton');
+    const saveBtn = document.getElementById('saveZoneButton');
+    const cancelBtn = document.getElementById('cancelZoneButton');
+    if (drawBtn) drawBtn.addEventListener('click', startDrawingZone);
+    if (saveBtn) saveBtn.addEventListener('click', saveZone);
+    if (cancelBtn) cancelBtn.addEventListener('click', cancelZone);
+
+    // Route import/export
+    const exportBtn = document.getElementById('exportRoutes');
+    const importBtn = document.getElementById('importRoutes');
+    const workwaveBtn = document.getElementById('importWorkwave');
+    if (exportBtn) exportBtn.addEventListener('click', exportRoutes);
+    if (importBtn) importBtn.addEventListener('click', importRoutes);
+    if (workwaveBtn) workwaveBtn.addEventListener('click', importWorkwaveOrders);
+}
+
+function displayRoutesByDay(day) {
+    removeRouteLayers();
+    globals.currentDay = day;
+    globals.currentRoutes = (window.routes || []).filter(r => r.day === day);
+    
+    // Create van overlays if available
+    if (window.MealMap && window.MealMap.createVanOverlays) {
+        window.MealMap.createVanOverlays();
+    }
+    
+    globals.currentRoutes.forEach((route, idx) => {
+        const id = `route-${idx}`;
+        const geojson = {
+            type: 'Feature',
+            geometry: {
+                type: 'Polygon',
+                coordinates: [route.path.map(p => [p.lng, p.lat])]
+            }
+        };
+        globals.map.addSource(id, { type: 'geojson', data: geojson });
+        globals.map.addLayer({
+            id,
+            type: 'fill',
+            source: id,
+            paint: {
+                'fill-color': route.restricted ? '#e74c3c' : '#3498db',
+                'fill-opacity': route.restricted ? 0.3 : 0.5
+            }
+        });
+        const labelId = `${id}-label`;
+        globals.map.addLayer({
+            id: labelId,
+            type: 'symbol',
+            source: id,
+            layout: {
+                'text-field': route.name,
+                'text-size': 12
+            },
+            paint: {
+                'text-color': route.restricted ? '#721c24' : '#202020'
+            }
+        });
+        globals.routeLayers.push(id);
+        globals.labelLayers.push(labelId);
+    });
+    const countSpan = document.getElementById('routeCount');
+    if (countSpan) countSpan.textContent = `(${globals.currentRoutes.length})`;
+}
+
+function removeRouteLayers() {
+    [...globals.routeLayers, ...globals.labelLayers].forEach(id => {
+        if (globals.map.getLayer(id)) globals.map.removeLayer(id);
+        if (globals.map.getSource(id)) globals.map.removeSource(id);
+    });
+    globals.routeLayers = [];
+    globals.labelLayers = [];
+}
+
+function getRouteColor(name) {
+    if (!globals.routeColors[name]) {
+        const color = globals.colorPalette[globals.colorIndex % globals.colorPalette.length];
+        globals.routeColors[name] = color;
+        globals.colorIndex += 1;
+    }
+    return globals.routeColors[name];
+}
+
+function displayOrders() {
+    removeOrderMarkers();
+    (globals.orders || []).forEach(order => {
+        const el = document.createElement('div');
+        el.style.backgroundColor = getRouteColor(order.route);
+        el.style.width = '12px';
+        el.style.height = '12px';
+        el.style.borderRadius = '50%';
+        el.style.border = '2px solid #fff';
+        const marker = new mapboxgl.Marker(el).setLngLat([order.lng, order.lat]).addTo(globals.map);
+        globals.orderMarkers.push(marker);
+    });
+}
+
+function removeOrderMarkers() {
+    globals.orderMarkers.forEach(m => m.remove());
+    globals.orderMarkers = [];
+}
+
+function importWorkwaveOrders() {
+    // Show loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.id = 'workwave-loading';
+    loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing orders from WorkWave...';
+    loadingIndicator.style.position = 'fixed';
+    loadingIndicator.style.top = '50%';
+    loadingIndicator.style.left = '50%';
+    loadingIndicator.style.transform = 'translate(-50%, -50%)';
+    loadingIndicator.style.padding = '20px';
+    loadingIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    loadingIndicator.style.color = 'white';
+    loadingIndicator.style.borderRadius = '5px';
+    loadingIndicator.style.zIndex = '9999';
+    document.body.appendChild(loadingIndicator);
+    
+    // Get API credentials from localStorage
+    let apiKey = '';
+    let territoryId = '';
+    try {
+        const apiConfig = JSON.parse(localStorage.getItem('apiConfig')) || {};
+        apiKey = apiConfig.apiKey || '';
+        territoryId = apiConfig.territoryId || '';
+    } catch (err) {
+        console.error('Failed to load API configuration:', err);
+    }
+    
+    // Check if API credentials are available
+    if (!apiKey || !territoryId) {
+        loadingIndicator.remove();
+        if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+            window.MealMap.showToast('API credentials not found. Please configure them in the Admin Panel.', 'error');
+        } else {
+            alert('API credentials not found. Please configure them in the Admin Panel.');
+        }
+        return;
+    }
+    
+    // Ask user which data source to use
+    const dataSource = confirm(
+        "Import from WorkWave Route Manager:\n\n" +
+        "• Click OK for PLANNED ROUTES (select a date)\n" +
+        "• Click Cancel for TODAY'S ROUTES (current date only)"
+    ) ? "planned" : "today";
+    
+    let apiEndpoint;
+    let dateStr = '';
+    
+    if (dataSource === "planned") {
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Allow user to select a date
+        dateStr = prompt('Enter date (YYYY-MM-DD) or leave blank for today:', today);
+        const date = dateStr || today;
+        
+        apiEndpoint = `/api/workwave/orders?date=${date}`;
+        loadingIndicator.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Importing orders for ${date}...`;
+    } else {
+        // Use current routes endpoint
+        apiEndpoint = '/api/workwave/current-orders';
+        loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing today\'s routes...';
+    }
+    
+    // Create headers with API credentials
+    const headers = {
+        'X-WorkWave-Key': apiKey,
+        'X-Territory-ID': territoryId,
+        'Content-Type': 'application/json'
+    };
+    
+    // Fetch orders from our server API
+    fetch(apiEndpoint, { headers })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+            
+            // Reset route colors
+            globals.routeColors = {};
+            globals.colorIndex = 0;
+            
+            // Update orders with the data from WorkWave
+            globals.orders = data.orders.filter(o => o.route && !isNaN(o.lat) && !isNaN(o.lng));
+            window.orders = globals.orders;
+            
+            if (globals.orders.length === 0) {
+                // No orders found
+                const dateInfo = dataSource === "planned" && dateStr ? ` for ${dateStr}` : '';
+                if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+                    window.MealMap.showToast(`No orders found${dateInfo}. ${data.message || ''}`, 'info');
+                } else {
+                    alert(`No orders found${dateInfo}. ${data.message || ''}`);
+                }
+            } else {
+                // Display the orders on the map
+                displayOrders();
+                
+                // Show success message
+                const source = dataSource === "planned" ? "planned routes" : "today's routes";
+                const routeCount = new Set(globals.orders.map(o => o.route)).size;
+                if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+                    window.MealMap.showToast(`Successfully imported ${globals.orders.length} orders from ${routeCount} ${source}`, 'success');
+                } else {
+                    alert(`Successfully imported ${globals.orders.length} orders from ${routeCount} ${source}`);
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Failed to import WorkWave orders:', err);
+            if (window.MealMap && typeof window.MealMap.showToast === 'function') {
+                window.MealMap.showToast(`Failed to import WorkWave orders: ${err.message}. Please check your API credentials.`, 'error');
+            } else {
+                alert(`Failed to import WorkWave orders: ${err.message}\n\nPlease check your API credentials and try again.`);
+            }
+        })
+        .finally(() => {
+            // Remove loading indicator
+            const loadingElement = document.getElementById('workwave-loading');
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+        });
+}
+
+function hideLoadingScreen() {
+    const screen = document.getElementById('loading-screen');
+    if (screen) {
+        screen.style.opacity = '0';
+        setTimeout(() => {
+            screen.style.display = 'none';
+        }, 500);
+    }
+}
+
+async function loadRoutes() {
+    try {
+        const resp = await fetch('/api/routes');
+        const data = await resp.json();
+        if (!Array.isArray(data)) return;
+        window.routes = data.map(route => ({
+            name: route.name || 'Unnamed Route',
+            day: route.day || 'Sunday',
+            restricted: route.restricted || false,
+            path: route.path || [] // array of { lat, lng }
+        }));
+    } catch (err) {
+        console.error('Failed to load routes:', err);
+        window.routes = [];
+    }
+}
+
+async function searchAddress() {
+    // Use enhanced search if available
+    if (window.MealMap && typeof window.MealMap.enhancedSearchAddress === 'function') {
+        window.MealMap.enhancedSearchAddress();
+        return;
+    }
+    
+    // Fall back to original search if enhanced search is not available
+    const address = document.getElementById('addressSearch').value;
+    const resultDiv = document.getElementById('searchResult');
+    if (!address) {
+        resultDiv.textContent = 'Please enter an address';
+        return;
+    }
+
+    // Limit search to US addresses only
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?country=us&access_token=${MAPBOX_TOKEN}`;
+
+    try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+
+        if (data.features && data.features.length) {
+            const [lng, lat] = data.features[0].center;
+            globals.map.flyTo({ center: [lng, lat], zoom: 14 });
+            let message = data.features[0].place_name;
+            const pt = turf.point([lng, lat]);
+            const match = globals.currentRoutes.find(r => {
+                const poly = turf.polygon([r.path.map(p => [p.lng, p.lat])]);
+                return turf.booleanPointInPolygon(pt, poly);
+            });
+            if (match) {
+                message += ` – Zone: ${match.name}`;
+            }
+            resultDiv.textContent = message;
+        } else {
+            resultDiv.textContent = 'Address not found.';
+        }
+    } catch (err) {
+        console.error('Geocoding error:', err);
+        resultDiv.textContent = 'Error searching address';
+    }
+}
+
+function startDrawingZone() {
+    if (!globals.draw) return;
+    const props = document.getElementById('zoneProperties');
+    if (props) props.style.display = 'none';
+    globals.draw.deleteAll();
+    globals.currentDrawId = null;
+    globals.draw.changeMode('draw_polygon');
+}
+
+function handleDrawCreate(e) {
+    if (e.features && e.features.length) {
+        globals.currentDrawId = e.features[0].id;
+        const props = document.getElementById('zoneProperties');
+        if (props) props.style.display = 'block';
+    }
+}
+
+function saveZone() {
+    if (!globals.currentDrawId) return;
+    const feature = globals.draw.get(globals.currentDrawId);
+    if (!feature) return;
+    const coords = feature.geometry.coordinates[0].map(([lng, lat]) => ({ lng, lat }));
+    const route = {
+        name: document.getElementById('zoneName').value || 'Unnamed Zone',
+        day: document.getElementById('zoneDay').value || 'Sunday',
+        driver: document.getElementById('zoneDriver').value || '',
+        deliveries: parseInt(document.getElementById('zoneDeliveries').value, 10) || 0,
+        capacity: parseInt(document.getElementById('zoneCapacity').value, 10) || 0,
+        vanNumber: document.getElementById('zoneVan').value || '',
+        restricted: document.getElementById('zoneRestricted').checked || false,
+        path: coords
+    };
+    window.routes = window.routes || [];
+    window.routes.push(route);
+    globals.draw.delete(globals.currentDrawId);
+    globals.currentDrawId = null;
+    const props = document.getElementById('zoneProperties');
+    if (props) props.style.display = 'none';
+    
+    // Display routes for the current day
+    displayRoutesByDay(globals.currentDay);
+    
+    // Make sure orders remain visible after saving a zone
+    if (globals.orders && globals.orders.length > 0) {
+        displayOrders();
+    }
+}
+
+function cancelZone() {
+    if (globals.currentDrawId) {
+        globals.draw.delete(globals.currentDrawId);
+        globals.currentDrawId = null;
+    }
+    const props = document.getElementById('zoneProperties');
+    if (props) props.style.display = 'none';
+    
+    // Make sure orders remain visible after canceling a zone
+    if (globals.orders && globals.orders.length > 0) {
+        displayOrders();
+    }
+}
+
+function exportRoutes() {
+    const data = JSON.stringify(window.routes || [], null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'routes.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importRoutes() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if (Array.isArray(data)) {
+                    window.routes = (window.routes || []).concat(data);
+                    displayRoutesByDay(globals.currentDay);
+                } else {
+                    alert('Invalid route data');
+                }
+            } catch (err) {
+                console.error('Failed to import routes:', err);
+                alert('Failed to import routes');
+            }
+        };
+        reader.readAsText(file);
+    });
+    input.click();
+}
+
+function toggleDarkMode() {
+    globals.darkMode = !globals.darkMode;
+    const style = globals.darkMode ? globals.mapStyles.dark : globals.mapStyles.light;
+    globals.map.setStyle(style);
+    globals.map.once('styledata', () => {
+        displayRoutesByDay(globals.currentDay);
+    });
+    document.body.classList.toggle('dark-mode', globals.darkMode);
+    document.body.classList.toggle('light-mode', !globals.darkMode);
+    const icon = globals.darkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    const btn = document.getElementById('darkModeToggle');
+    if (btn) btn.innerHTML = icon;
+}
+
+window.MealMap = { initMap };

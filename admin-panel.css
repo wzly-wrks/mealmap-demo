@@ -1,0 +1,73 @@
+/* Admin Panel Navigation */
+.admin-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--gray-300);
+    padding-bottom: 15px;
+}
+
+.dark-mode .admin-nav {
+    border-color: var(--gray-700);
+}
+
+.admin-nav-btn {
+    background-color: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dark-mode .admin-nav-btn {
+    background-color: var(--gray-700);
+    color: var(--gray-300);
+}
+
+.admin-nav-btn:hover {
+    background-color: var(--gray-300);
+    transform: translateY(-2px);
+}
+
+.dark-mode .admin-nav-btn:hover {
+    background-color: var(--gray-600);
+}
+
+.admin-nav-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.dark-mode .admin-nav-btn.active {
+    background-color: var(--primary-dark);
+}
+
+.admin-content-section {
+    padding: 10px 0;
+}
+
+.help-content {
+    background-color: var(--gray-100);
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 15px;
+}
+
+.dark-mode .help-content {
+    background-color: var(--gray-700);
+}
+
+/* Fix for admin panel scrolling */
+#adminControls {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
